@@ -123,7 +123,6 @@ public:
 };
 
 
-map<array<int,3> , int> mappa_vertici; 
 void crea_poliedro_geodetico(int p, q, b, c) {
 	if p == 3 {
 		if b >= 1 & c == 0 {
@@ -138,8 +137,14 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 			s_g_Cell3Ds << "Id" << "num_vertices" << "num_edges" << "num_faces" << "vertices" << "edges" << "faces" << "/n";
 			if q == 3 {
 				int F = 4;
+				
+				// Possiamo creare una funzione da qua in giù fino a q == 4
 				int id_vertice = 0;
 				int id_lato = 0;
+				map<array<int,3> , int> mappa_vertici;    
+				map<int, Vector3d> local_id_to_position;                    /// A ID associo coordinate o a coordinate associo ID ?????
+				
+				map<pair<Vector3d,Vector3d>, int> lati_map;
 				//Siamo nel caso tetraedro:
 				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
 				for(int i = 0; i < F; i++) {
@@ -159,24 +164,27 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 							points.push_back(P / sqrt(P[0] * P[0] + P[1] * P[1] + P[2] * P[2]));
 						}
 					}
-					for(int v = 0; v < points.size(); v++) {
-						if (!
-							mappa_vertici.insert({(points[v]/eps , id});
-							s_p_Cell0Ds << id << points[v] << "\n";
-							id++;		
+					for(int l_id = 0; l_id < points.size(); l_id++) {
+						local_id_to_position.insert({l_id, points[l_id]});
+						auto [iterator, inserted] = mappa_vertici.insert({points[id_vertice], id_vertice}); 						/// stesso problema di sopra
+						if(inserted)
+							id_vertice++;
 					}
+					
 					int d = 0;
 					for (int i = 0; i < b; i++) {   
 						for (int j = d; j < d + b - i; j++) {
-							s_g_Cell1Ds << id_lato << "id di points[j]" << "id di points[j + 1]" << "\n"; 
+							lati_map.insert({pair<local_id_to_position[j], local_id_to_position[j+1]>, id_lato});
 							id_lato++;
-							s_g_Cell1Ds << id_lato << "id di points[j]" << "id di points[j + b + 1 - i]" << "\n";
+							lati_map.insert({pair<local_id_to_position[j], local_id_to_position[j+b+1-i]>, id_lato});
 							id_lato++;
-							s_g_Cell1Ds << id_lato << "id di points[j + 1]" << "id di points[j + b + 1 - i]" << "\n"; 
-							id_lato++;
+							lati_map.insert({pair<local_id_to_position[j+1], local_id_to_position[j+b+1-i]>, id_lato});
+							id_lato++;							
 						}
 						d = d + b + 1 - i;	
 					}
+					local_id_to_position.clear();                   
+
                 }
 
 			}
