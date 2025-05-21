@@ -188,8 +188,31 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 							s_g_Cell2Ds << mappa_vertici[points[j]] << mappa_vertici[points[j + 1]] << mappa_vertici[points[j+b+1-i]] << mappa_lati[
 						}
 						d = d + b + 1 - i;	
-					}	                 
-
+					}	
+					
+                    int d = 0;
+					
+					////
+					
+					for (int i = 0; i < b; i++) {   
+						for (int j = d; j < d + b - i; j++){
+							if( i==0){
+								Vector3d id_vertici_faccia = [ mappa_vertici[points[j]], mappa_vertici[points[j+1]], mappa_vertici[points[j+b+1-i]]]; // insieme id vertici per ogni faccia  // controllare struttura
+								Vector3d id_lati_faccia = [ mappa_lati[{points[j],points[j+1]}], mappa_lati[{points[j+1],points[j+b+1-i]}], mappa_lati[{points[j],points[j+b+1-i]}]];
+							    mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}};
+								id_faccia++;
+							}
+							else {
+								Vector3d id_vertici_faccia = [ mappa_vertici[points[j]], mappa_vertici[points[j+1]], mappa_vertici[points[j+b+1-i]]]; // insieme id vertici per ogni faccia  // controllare struttura
+								Vector3d id_lati_faccia = [ mappa_lati[{points[j],points[j+1]}], mappa_lati[{points[j+1],points[j+b+1-i]}], mappa_lati[{points[j],points[j+b+1-i]}]];
+								mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}};
+								id_faccia++;
+								Vector3d id_vertici_faccia = [ mappa_vertici[points[j]], mappa_vertici[points[j+1]], mappa_vertici[points[j-b-1+i]]]; // insieme id vertici per ogni faccia  // controllare struttura
+								Vector3d id_lati_faccia = [ mappa_lati[{points[j],points[j+1]}], mappa_lati[{points[j+1],points[j-b-1+i]}], mappa_lati[{points[j],points[j-b-1+i]}]];
+								mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}};
+								id_faccia++;
+							}
+							
                 }
 
 			}
