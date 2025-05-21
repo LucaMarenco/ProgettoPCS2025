@@ -79,16 +79,6 @@ Dati in input p,q,b,c bisogna innanzitutto, perché sia un solido geodetico, ave
 Faccio una funzione void (perché non ritorna niente) che, dati in input i 4 interi p,q,b e c,
 crea 4 file txt che rappresentano il poliedro geodetico che si ottiene a partire da un certo solido platonico:
 
-const double EPS = 1e-12;
-
-// Crea una chiave "intera" da coordinate (x, y, z) con arrotondamento
-tuple<int, int, int> key_from_point(double x, double y, double z) {
-    return make_tuple(
-        static_cast<int>(std::round(x / EPS)),
-        static_cast<int>(std::round(y / EPS)),
-        static_cast<int>(std::round(z / EPS))
-    );
-}
 
 class GestoreVertici {
 private:
@@ -124,8 +114,8 @@ public:
 
 
 void crea_poliedro_geodetico(int p, q, b, c) {
-	if (p == 3) {
-		if (b >= 1 && c == 0) {
+	if p == 3 {
+		if b >= 1 && c == 0 {
 			int T = b * b + b * c + c * c; 
 			ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
 			ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
@@ -135,16 +125,18 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 			s_g_Cell1Ds << "Id" << "start_vertex" << "end_vertex" << "\n"; 
 			s_g_Cell2Ds << "Id" << "num_vertices" << "num_edges" << "vertices" << "edges" << "\n";
 			s_g_Cell3Ds << "Id" << "num_vertices" << "num_edges" << "num_faces" << "vertices" << "edges" << "faces" << "\n";
-			if (q == 3) {
+			if q == 3 {
 				int F = 4;
-				
-				// Possiamo creare una funzione da qua in giù fino a q == 4
+				int F_s_g = 4 * T;
+				int V_s_g = 2 * T + 2;
+				int L_s_g = 6 * T;
+				int V_p_o_f = (b + 1) * (b + 2) / 2;
+				int L_p_o_f = 1.5 * b * (b + 1);
 				int id_vertice = 0;
 				int id_lato = 0;
-				map<array<int,3> , int> mappa_vertici;    
-				map<int, Vector3d> local_id_to_position;                    /// A ID associo coordinate o a coordinate associo ID ?????
-				
-				map<pair<Vector3d,Vector3d>, int> lati_map;
+				int id_faccia = 0;
+				map<array<double,3> , int> mappa_vertici;    
+				map<pair<array<double, 3> , array<double, 3>> , int> mappa_lati;
 				//Siamo nel caso tetraedro:
 				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
 				for(int i = 0; i < F; i++) {
@@ -161,61 +153,56 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 							double c_B = (double)k / b;
 							double c_C = (double)j / b;
 							Vector3d P = c_A * A + c_B * B + c_C * C;
-							points.push_back(P / sqrt(P[0] * P[0] + P[1] * P[1] + P[2] * P[2]));  //già normalizzate
+							points.push_back(P / sqrt(P[0] * P[0] + P[1] * P[1] + P[2] * P[2]));
 						}
 					}
-					for(int l_id = 0; l_id < points.size(); l_id++) {
-						local_id_to_position.insert({l_id, points[l_id]});
-						auto [iterator, inserted] = mappa_vertici.insert({points[id_vertice], id_vertice}); 						/// stesso problema di sopra
-						if(inserted)
+					s_g_Cell2Ds << Id_faccia << V_p_o_f << L_p_o_f;
+					for(int i = 0; i < points.size(); i++) {
+						if (mappa_vertici.find(points[i]) != mappa_vertici.end()) {
+							
+						} else {
+							mappa_vertici.insert({points[i], id_vertice});
+							s_g_Cell0Ds << id_vertice << points[i][0] << points[i][1] << points[i][2] << "\n";
 							id_vertice++;
+						}
 					}
 					
 					int d = 0;
 					for (int i = 0; i < b; i++) {   
 						for (int j = d; j < d + b - i; j++) {
-							lati_map.insert({pair<local_id_to_position[j], local_id_to_position[j+1]>, id_lato});
-							id_lato++;
-							lati_map.insert({pair<local_id_to_position[j], local_id_to_position[j+b+1-i]>, id_lato});
-							id_lato++;
-							lati_map.insert({pair<local_id_to_position[j+1], local_id_to_position[j+b+1-i]>, id_lato});
-							id_lato++;							
+							if (mappa_lati.find({points[j],points[j+b+1-i]} != mappa_lati.end()){}
+							elseif(mappa_lati.find({points[j+b+1-i],points[j]} != mappa_lati.end()){}
+							else{ mappa_lati.insert({points[j],points[j+b+1-i]},id_lato);
+							s_g_Cell1Ds << Id_lato << mappa_vertici[points[j]] << mappa_vertici[points[j+b+1-i]] << "\n";
+							id_lato++;}
+							if (mappa_lati.find({points[j],points[j+1]} != mappa_lati.end()){}
+							elseif(mappa_lati.find({points[j+1],points[j]} != mappa_lati.end()){}
+							else{ mappa_lati.insert({points[j],points[j+1]},id_lato);
+							s_g_Cell1Ds << Id_lato <<  mappa_vertici[points[j]] << mappa_vertici[points[j+1]] << "\n";
+							id_lato++;}
+							if (mappa_lati.find({points[j+1],points[j+b+1-i]} != mappa_lati.end()){}
+							elseif(mappa_lati.find({points[j+1],points[j+b+1-i]} != mappa_lati.end()){}
+							else{ mappa_lati.insert({points[j+1],points[j+b+1-i]},id_lato);
+							s_g_Cell1Ds << id_lato <<  mappa_vertici[points[j+1]] << mappa_vertici[points[j+b+1-i]]<< "\n";
+							id_lato++;}	
+							s_g_Cell2Ds << mappa_vertici[points[j]] << mappa_vertici[points[j + 1]] << mappa_vertici[points[j+b+1-i]] << mappa_lati[
 						}
 						d = d + b + 1 - i;	
-					}
-					local_id_to_position.clear();                   
+					}	                 
 
                 }
 
 			}
-			if (q == 4) {
-				int F = 8;
-				int id_vertice = 0;
-				int id_lato = 0;
-				//Siamo nel caso ottaedro:
-				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
+	if q == 4 {
+		Siamo nel caso ottaedro:
 				
-				//uso la stessa funzione del caso q==3
+	}	 
+	if q == 5 {
+		Siamo nel caso icosaedro:
 				
-			}
-			
-			if (q == 5) {
-				int F = 20;
-				int id_vertice = 0;
-				int id_lato = 0;
-				//Siamo nel caso icosaedro:
-				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
-				
-				//uso la stessa funzione del caso q==3
-			} 
-		}
-		
-		if(b==c && b >=1){
-			
-		}
-	}
-
+	} 
+}
+*/
 
     return 0;
 }
-*/
