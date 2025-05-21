@@ -124,18 +124,18 @@ public:
 
 
 void crea_poliedro_geodetico(int p, q, b, c) {
-	if p == 3 {
-		if b >= 1 & c == 0 {
+	if (p == 3) {
+		if (b >= 1 && c == 0) {
 			int T = b * b + b * c + c * c; 
 			ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
 			ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
 			ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
 			ofstream s_g_Cell3Ds("s_g_Cell3Ds.txt");
-			s_g_Cell0Ds << "Id" << "x" << "y" << "z" << "/n";
-			s_g_Cell1Ds << "Id" << "start_vertex" << "end_vertex" << "/n"; 
-			s_g_Cell2Ds << "Id" << "num_vertices" << "num_edges" << "vertices" << "edges" << "/n";
-			s_g_Cell3Ds << "Id" << "num_vertices" << "num_edges" << "num_faces" << "vertices" << "edges" << "faces" << "/n";
-			if q == 3 {
+			s_g_Cell0Ds << "Id" << "x" << "y" << "z" << "\n";
+			s_g_Cell1Ds << "Id" << "start_vertex" << "end_vertex" << "\n"; 
+			s_g_Cell2Ds << "Id" << "num_vertices" << "num_edges" << "vertices" << "edges" << "\n";
+			s_g_Cell3Ds << "Id" << "num_vertices" << "num_edges" << "num_faces" << "vertices" << "edges" << "faces" << "\n";
+			if (q == 3) {
 				int F = 4;
 				
 				// Possiamo creare una funzione da qua in giù fino a q == 4
@@ -161,7 +161,7 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 							double c_B = (double)k / b;
 							double c_C = (double)j / b;
 							Vector3d P = c_A * A + c_B * B + c_C * C;
-							points.push_back(P / sqrt(P[0] * P[0] + P[1] * P[1] + P[2] * P[2]));
+							points.push_back(P / sqrt(P[0] * P[0] + P[1] * P[1] + P[2] * P[2]));  //già normalizzate
 						}
 					}
 					for(int l_id = 0; l_id < points.size(); l_id++) {
@@ -188,16 +188,34 @@ void crea_poliedro_geodetico(int p, q, b, c) {
                 }
 
 			}
-	if q == 4 {
-		Siamo nel caso ottaedro:
+			if (q == 4) {
+				int F = 8;
+				int id_vertice = 0;
+				int id_lato = 0;
+				//Siamo nel caso ottaedro:
+				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
 				
-	}	 
-	if q == 5 {
-		Siamo nel caso icosaedro:
+				//uso la stessa funzione del caso q==3
 				
-	} 
-}
-*/
+			}
+			
+			if (q == 5) {
+				int F = 20;
+				int id_vertice = 0;
+				int id_lato = 0;
+				//Siamo nel caso icosaedro:
+				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
+				
+				//uso la stessa funzione del caso q==3
+			} 
+		}
+		
+		if(b==c && b >=1){
+			
+		}
+	}
+
 
     return 0;
 }
+*/
