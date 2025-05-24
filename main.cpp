@@ -170,18 +170,18 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 					int d = 0;
 					for (int i = 0; i < b; i++) {   
 						for (int j = d; j < d + b - i; j++) {
-							if (mappa_lati.find({points[j],points[j+b+1-i]} != mappa_lati.end()){}
-							elseif(mappa_lati.find({points[j+b+1-i],points[j]} != mappa_lati.end()){}
+							if (mappa_lati.find({points[j],points[j+b+1-i]}) != mappa_lati.end()){}
+							else if(mappa_lati.find({points[j+b+1-i],points[j]}) != mappa_lati.end()){}
 							else{ mappa_lati.insert({points[j],points[j+b+1-i]},id_lato);
 							s_g_Cell1Ds << Id_lato << mappa_vertici[points[j]] << mappa_vertici[points[j+b+1-i]] << "\n";
 							id_lato++;}
-							if (mappa_lati.find({points[j],points[j+1]} != mappa_lati.end()){}
-							elseif(mappa_lati.find({points[j+1],points[j]} != mappa_lati.end()){}
+							if (mappa_lati.find({points[j],points[j+1]} != mappa_lati.end())){}
+							else if(mappa_lati.find({points[j+1],points[j]})!= mappa_lati.end(){}
 							else{ mappa_lati.insert({points[j],points[j+1]},id_lato);
 							s_g_Cell1Ds << Id_lato <<  mappa_vertici[points[j]] << mappa_vertici[points[j+1]] << "\n";
 							id_lato++;}
-							if (mappa_lati.find({points[j+1],points[j+b+1-i]} != mappa_lati.end()){}
-							elseif(mappa_lati.find({points[j+1],points[j+b+1-i]} != mappa_lati.end()){}
+							if (mappa_lati.find({points[j+1],points[j+b+1-i]}) != mappa_lati.end()){}
+							else if(mappa_lati.find({points[j+1],points[j+b+1-i]}) != mappa_lati.end()){}
 							else{ mappa_lati.insert({points[j+1],points[j+b+1-i]},id_lato);
 							s_g_Cell1Ds << id_lato <<  mappa_vertici[points[j+1]] << mappa_vertici[points[j+b+1-i]]<< "\n";
 							id_lato++;}	
@@ -230,4 +230,188 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 */
 
     return 0;
+}
+
+
+
+
+
+
+
+
+
+// Correzioni Luca
+
+/* 
+// Da mettere prima del main
+std::array<double, 3> to_array(const Eigen::Vector3d& v) {
+    return {v[0], v[1], v[2]};
+}
+
+int main()
+{
+	int p=3;
+	int b=2;
+	int c=0;
+	int q=3;
+	
+	std::vector<std::vector<int>> cells = {
+        {0, 3, 3, 0, 1, 2, 0, 3, 1},
+        {1, 3, 3, 0, 1, 3, 0, 4, 2},
+        {2, 3, 3, 0, 3, 2, 2, 5, 1},
+        {3, 3, 3, 1, 2, 3, 3, 5, 4}
+    };
+
+    // Mappa che associa l'ID della faccia al vettore dei suoi vertici
+    std::map<int, std::vector<int>> tCell2DsVertices;
+
+    for (const auto& cell : cells) {
+        int face_id = cell[0]; // ID della faccia
+        int num_vertices = cell[1]; // Numero di vertici
+
+        // Estrai i vertici dalla riga
+        std::vector<int> vertices(cell.begin() + 3, cell.begin() + 3 + num_vertices);
+
+        // Aggiungi alla mappa
+        tCell2DsVertices[face_id] = vertices;
+    }
+		
+	std::vector<std::pair<int, Vector3d>> vertices = {
+        {0, { 0.57735027,  0.57735027,  0.57735027}},
+        {1, {-0.57735027, -0.57735027,  0.57735027}},
+        {2, {-0.57735027,  0.57735027, -0.57735027}},
+        {3, { 0.57735027, -0.57735027, -0.57735027}}
+    };
+
+    std::map<int, Vector3d> tCell0DsCoordinates;
+
+    for (const auto& [id, coords] : vertices) {
+        tCell0DsCoordinates[id] = coords;
+    }
+
+
+	if (p == 3) {
+		if (b >= 1 && c == 0 ){
+			int T = b * b + b * c + c * c; 
+			ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
+			ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
+			ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
+			ofstream s_g_Cell3Ds("s_g_Cell3Ds.txt");
+			s_g_Cell0Ds << "Id " << "x" << "y" << "z" << "\n";
+			s_g_Cell1Ds << "Id " << "start_vertex " << "end_vertex" << "\n"; 
+			s_g_Cell2Ds << "Id " << "num_vertices " << "num_edges " << "vertices " << "edges " << "\n";
+			s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
+			if (q == 3) {
+				int F = 4;
+				int F_s_g = 4 * T;
+				int V_s_g = 2 * T + 2;
+				int L_s_g = 6 * T;
+				int V_p_o_f = (b + 1) * (b + 2) / 2;   
+				int L_p_o_f = 1.5 * b * (b + 1);
+				int id_vertice = 0;
+				int id_lato = 0;
+				int id_faccia = 0;
+				map<array<double,3> , int> mappa_vertici;    
+				map<pair<array<double, 3> , array<double, 3>> , int> mappa_lati;
+				//Siamo nel caso tetraedro:
+				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
+				for(int i = 0; i < F; i++) {
+					int id_A = tCell2DsVertices[i][0];
+					int id_B = tCell2DsVertices[i][1]; 
+					int id_C = tCell2DsVertices[i][2];
+					Vector3d A = tCell0DsCoordinates[id_A];
+					Vector3d B = tCell0DsCoordinates[id_B];
+					Vector3d C = tCell0DsCoordinates[id_C];	
+					vector<Vector3d> points;
+					for (int k = 0; k <= b; k++) {
+						for (int j = 0; j <= b - k; j++) {
+							double c_A = 1.0 - (double)k / b - (double)j / b;
+							double c_B = (double)k / b;
+							double c_C = (double)j / b;
+							Vector3d P = c_A * A + c_B * B + c_C * C;
+							points.push_back(P / sqrt(P[0] * P[0] + P[1] * P[1] + P[2] * P[2]));
+						}
+					}
+					for(int i = 0; i < points.size(); i++) {
+						 auto key = to_array(points[i]);
+
+						if (mappa_vertici.find(key) == mappa_vertici.end()) {
+							mappa_vertici[key] = id_vertice;
+							s_g_Cell0Ds << id_vertice << " " << key[0] << " " << key[1] << " " << key[2] << "\n";
+							id_vertice++;							// assegna nuovo ID se non esiste
+							
+						}
+						/*
+						if (mappa_vertici.find(points[i]) != mappa_vertici.end()) {             // error: no matching function for call to 'std::map<std::array<double, 3>, int>::find(__gnu_cxx::__alloc_traits<std::allocator<Eigen::Matrix<double, 3, 1> >, Eigen::Matrix<double, 3, 1> >::value_type&)'
+							                                                                    // serve una funzione che trasformi vector in array
+						} else {
+							mappa_vertici.insert({points[i], id_vertice});
+							s_g_Cell0Ds << id_vertice << points[i][0] << points[i][1] << points[i][2] << "\n";
+							id_vertice++;
+						}*/ /*
+					}
+					
+					int d = 0;
+					for (int i = 0; i < b; i++) {   
+						for (int j = d; j < d + b - i; j++) {
+							auto key_j = to_array(points[j]);
+							auto key_j1 = to_array(points[j+1]);
+							auto key_jb = to_array(points[j+b+1-i]);
+							
+							if (mappa_lati.find({key_j,key_jb}) != mappa_lati.end()){}
+							else if(mappa_lati.find({key_jb,key_j}) != mappa_lati.end()){}
+							else{ mappa_lati.insert({{key_j,key_jb},id_lato});
+							s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_jb] << "\n";
+							id_lato++;}
+							if (mappa_lati.find({key_j,key_j1}) != mappa_lati.end()){}
+							else if (mappa_lati.find({key_j1,key_j})!= mappa_lati.end()){}
+							else{ mappa_lati.insert({{key_j,key_j1},id_lato});
+							s_g_Cell1Ds << id_lato << " " <<  mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
+							id_lato++;}
+							if (mappa_lati.find({key_j1,key_jb}) != mappa_lati.end()){}
+							else if(mappa_lati.find({key_j1,key_jb}) != mappa_lati.end()){}
+							else{ mappa_lati.insert({{key_j1,key_jb},id_lato});
+							s_g_Cell1Ds << id_lato << " " <<  mappa_vertici[key_j1] << " " << mappa_vertici[key_jb]<< "\n";
+							id_lato++;}	
+							s_g_Cell2Ds << id_faccia << " " << "3 3 " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << " " << mappa_vertici[key_jb] <<  " mancano i lati" << "\n";
+						}
+						d = d + b + 1 - i;	
+					}	
+					
+                    d = 0;
+					
+					////
+					map<int, pair<Vector3i, Vector3i>> mappa_facce;
+
+					Vector3i id_vertici_faccia;
+					Vector3i id_lati_faccia;
+					for (int i = 0; i < b; i++) {   
+						for (int j = d; j < d + b - i; j++){
+							auto key_j = to_array(points[j]);
+							auto key_j1 = to_array(points[j+1]);
+							auto key_jb = to_array(points[j+b+1-i]);
+											
+							if( i==0){
+								id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]}; // insieme id vertici per ogni faccia  
+								id_lati_faccia= Vector3i{mappa_lati[{key_j,key_j1}], mappa_lati[{key_j1,key_jb}], mappa_lati[{key_j,key_jb}]};
+							    mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}});  // Da correggere l'id
+								id_faccia++;    
+							}
+							else {
+								auto key_jb_m = to_array(points[j-b-1+i]);
+								id_vertici_faccia = Vector3i{ mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]}; // insieme id vertici per ogni faccia  
+							    id_lati_faccia = Vector3i{mappa_lati[{key_j,key_j1}], mappa_lati[{key_j1,key_jb}], mappa_lati[{key_j,key_jb}]};
+								mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}}); // Da correggere l'id
+								id_faccia++;
+								id_vertici_faccia = Vector3i{ mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb_m]}; // insieme id vertici per ogni faccia  
+							    id_lati_faccia = Vector3i{ mappa_lati[{key_j,key_j1}], mappa_lati[{key_j1,key_jb_m}], mappa_lati[{key_j,key_jb_m}]};
+								mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}}); // Da correggere l'id
+								id_faccia++;
+							}
+						}
+					}							
+                }
+			}
+		}
+	}
 }
