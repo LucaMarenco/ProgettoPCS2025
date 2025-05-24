@@ -114,8 +114,8 @@ public:
 
 
 void crea_poliedro_geodetico(int p, q, b, c) {
-	if p == 3 {
-		if b >= 1 && c == 0 {
+	if (p == 3) {
+		if (b >= 1 && c == 0) {
 			int T = b * b + b * c + c * c; 
 			ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
 			ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
@@ -125,7 +125,7 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 			s_g_Cell1Ds << "Id" << "start_vertex" << "end_vertex" << "\n"; 
 			s_g_Cell2Ds << "Id" << "num_vertices" << "num_edges" << "vertices" << "edges" << "\n";
 			s_g_Cell3Ds << "Id" << "num_vertices" << "num_edges" << "num_faces" << "vertices" << "edges" << "faces" << "\n";
-			if q == 3 {
+			if (q == 3) {
 				int F = 4;
 				int F_s_g = 4 * T;
 				int V_s_g = 2 * T + 2;
@@ -212,15 +212,17 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 								mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}};
 								id_faccia++;
 							}
+						}
+					}
 							
                 }
 
 			}
-	if q == 4 {
+	if (q == 4) {
 		Siamo nel caso ottaedro:
 				
 	}	 
-	if q == 5 {
+	if (q == 5) {
 		Siamo nel caso icosaedro:
 				
 	} 
