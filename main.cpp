@@ -242,7 +242,7 @@ void crea_poliedro_geodetico(int p, q, b, c) {
 
 // Correzioni Luca
 
-/* 
+
 // Da mettere prima del main
 std::array<double, 3> to_array(const Eigen::Vector3d& v) {
     return {v[0], v[1], v[2]};
@@ -297,7 +297,7 @@ int main()
 			ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
 			ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
 			ofstream s_g_Cell3Ds("s_g_Cell3Ds.txt");
-			s_g_Cell0Ds << "Id " << "x" << "y" << "z" << "\n";
+			s_g_Cell0Ds << "Id " << "x " << "y " << "z" << "\n";
 			s_g_Cell1Ds << "Id " << "start_vertex " << "end_vertex" << "\n"; 
 			s_g_Cell2Ds << "Id " << "num_vertices " << "num_edges " << "vertices " << "edges " << "\n";
 			s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
@@ -306,13 +306,11 @@ int main()
 				int F_s_g = 4 * T;
 				int V_s_g = 2 * T + 2;
 				int L_s_g = 6 * T;
-				int V_p_o_f = (b + 1) * (b + 2) / 2;   
-				int L_p_o_f = 1.5 * b * (b + 1);
 				int id_vertice = 0;
 				int id_lato = 0;
 				int id_faccia = 0;
-				map<array<double,3> , int> mappa_vertici;    
-				map<pair<array<double, 3> , array<double, 3>> , int> mappa_lati;
+				map<array<int,3> , int> mappa_vertici;    
+				map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
 				//Siamo nel caso tetraedro:
 				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
 				for(int i = 0; i < F; i++) {
@@ -329,58 +327,59 @@ int main()
 							double c_B = (double)k / b;
 							double c_C = (double)j / b;
 							Vector3d P = c_A * A + c_B * B + c_C * C;
-							points.push_back(P / sqrt(P[0] * P[0] + P[1] * P[1] + P[2] * P[2]));
+							points.push_back(P / P.norm());
 						}
 					}
-					for(int i = 0; i < points.size(); i++) {
-						 auto key = to_array(points[i]);
-
+					s_g_Cell3Ds << 0 << " " << V_s_g << " " << L_s_g << " " << " " << F_s_g << " ";
+					for(int z = 0; z < points.size(); z++) {
+						 auto key = to_array(points[z]);    
 						if (mappa_vertici.find(key) == mappa_vertici.end()) {
 							mappa_vertici[key] = id_vertice;
-							s_g_Cell0Ds << id_vertice << " " << key[0] << " " << key[1] << " " << key[2] << "\n";
-							id_vertice++;							// assegna nuovo ID se non esiste
+							s_g_Cell3Ds << id_vertice;
+							double eps = 1e-5;
+							s_g_Cell0Ds << id_vertice << " " << key[0]*eps << " " << key[1]*eps << " " << key[2]*eps << "\n";
+							id_vertice++;							// assegna nuovo ID a vertice se non esiste
 							
 						}
-						/*
-						if (mappa_vertici.find(points[i]) != mappa_vertici.end()) {             // error: no matching function for call to 'std::map<std::array<double, 3>, int>::find(__gnu_cxx::__alloc_traits<std::allocator<Eigen::Matrix<double, 3, 1> >, Eigen::Matrix<double, 3, 1> >::value_type&)'
-							                                                                    // serve una funzione che trasformi vector in array
-						} else {
-							mappa_vertici.insert({points[i], id_vertice});
-							s_g_Cell0Ds << id_vertice << points[i][0] << points[i][1] << points[i][2] << "\n";
-							id_vertice++;
-						}*/ /*
 					}
 					
 					int d = 0;
-					for (int i = 0; i < b; i++) {   
-						for (int j = d; j < d + b - i; j++) {
+					for (int f = 0; f <= b; f++) {   
+						for (int j = d; j < d + b - f; j++) {
 							auto key_j = to_array(points[j]);
 							auto key_j1 = to_array(points[j+1]);
-							auto key_jb = to_array(points[j+b+1-i]);
+							auto key_jb = to_array(points[j+b+1-f]);
 							
-							if (mappa_lati.find({key_j,key_jb}) != mappa_lati.end()){}
-							else if(mappa_lati.find({key_jb,key_j}) != mappa_lati.end()){}
-							else{ mappa_lati.insert({{key_j,key_jb},id_lato});
-							s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_jb] << "\n";
+							if (mappa_lati.find({min({key_j,key_jb}), max({key_j,key_jb})}) != mappa_lati.end()){}
+							//else if(mappa_lati.find({key_jb,key_j}) != mappa_lati.end()){}
+							else{ mappa_lati.insert({{min({key_j,key_jb}), max({key_j,key_jb})},id_lato});
+							s_g_Cell1Ds << id_lato << " " <<mappa_vertici[min({key_j,key_jb})] << " "<<  mappa_vertici[max({key_j,key_jb})]  <<"\n";
+							s_g_Cell3Ds << id_lato;
 							id_lato++;}
-							if (mappa_lati.find({key_j,key_j1}) != mappa_lati.end()){}
-							else if (mappa_lati.find({key_j1,key_j})!= mappa_lati.end()){}
-							else{ mappa_lati.insert({{key_j,key_j1},id_lato});
-							s_g_Cell1Ds << id_lato << " " <<  mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
+							if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()){}
+							// else if (mappa_lati.find({key_j1,key_j})!= mappa_lati.end()){}
+							else{ mappa_lati.insert({{min({key_j,key_j1}), max({key_j,key_j1})} ,id_lato});
+							s_g_Cell1Ds << id_lato << " " << mappa_vertici[min({key_j,key_jb})]  << " " << mappa_vertici[max({key_j,key_jb})] << "\n";
+							s_g_Cell3Ds << id_lato;
 							id_lato++;}
-							if (mappa_lati.find({key_j1,key_jb}) != mappa_lati.end()){}
-							else if(mappa_lati.find({key_j1,key_jb}) != mappa_lati.end()){}
-							else{ mappa_lati.insert({{key_j1,key_jb},id_lato});
-							s_g_Cell1Ds << id_lato << " " <<  mappa_vertici[key_j1] << " " << mappa_vertici[key_jb]<< "\n";
+							if (mappa_lati.find({min({key_jb,key_j1}), max({key_jb,key_j1})}) != mappa_lati.end()){}
+							// else if(mappa_lati.find({key_jb,key_j1}) != mappa_lati.end()){}
+							else{ mappa_lati.insert({{min({key_jb,key_j1}), max({key_jb,key_j1})},id_lato});
+							s_g_Cell1Ds << id_lato << " " <<mappa_vertici[min({key_jb,key_j1})] << " " << mappa_vertici[max({key_jb,key_j1})]<< "\n";
+							s_g_Cell3Ds << id_lato;
 							id_lato++;}	
-							s_g_Cell2Ds << id_faccia << " " << "3 3 " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << " " << mappa_vertici[key_jb] <<  " mancano i lati" << "\n";
+							//s_g_Cell2Ds << id_faccia << " " << "3 3 " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << " " << mappa_vertici[key_jb] <<  " " 
+							//<< mappa_lati[{key_j,key_j1}] << " " << mappa_lati[{key_j1,key_jb}] << " "
+							//<< mappa_lati[{key_jb,key_j}] << "\n";
+							//id_faccia++;
 						}
-						d = d + b + 1 - i;	
+						d = d + b + 1 - f;	
 					}	
-					
+					for(int i = 0; i < F_s_g; i++) {
+						s_g_Cell3Ds << i;
+					}
                     d = 0;
 					
-					////
 					map<int, pair<Vector3i, Vector3i>> mappa_facce;
 
 					Vector3i id_vertici_faccia;
@@ -392,26 +391,60 @@ int main()
 							auto key_jb = to_array(points[j+b+1-i]);
 											
 							if( i==0){
+								id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]}; // insieme id vertici per ogni faccia
+								if (mappa_lati.find({min({key_j,key_jb}),max({key_j,key_jb})}) != mappa_lati.end()){
+									id_lati_faccia= Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_jb}),max({key_j1,key_jb})}], mappa_lati[{min({key_j,key_jb}),max({key_j,key_jb})}]};
+									mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}}); 
+								}
+							    /*else if(mappa_lati.find({key_jb,key_j}) != mappa_lati.end()){
 								id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]}; // insieme id vertici per ogni faccia  
 								id_lati_faccia= Vector3i{mappa_lati[{key_j,key_j1}], mappa_lati[{key_j1,key_jb}], mappa_lati[{key_j,key_jb}]};
-							    mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}});  // Da correggere l'id
-								id_faccia++;    
+							    mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}}); }
+								 // Da correggere l'id*/
+								
+								cout << "f " << id_faccia << endl;
+								cout << "v "<< id_vertici_faccia.transpose() << endl;
+								cout << "l "<< id_lati_faccia.transpose()<< endl;
+								id_faccia++;
 							}
 							else {
 								auto key_jb_m = to_array(points[j-b-1+i]);
 								id_vertici_faccia = Vector3i{ mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]}; // insieme id vertici per ogni faccia  
-							    id_lati_faccia = Vector3i{mappa_lati[{key_j,key_j1}], mappa_lati[{key_j1,key_jb}], mappa_lati[{key_j,key_jb}]};
+								//cout << "Primo vert " << mappa_vertici[key_j]<< endl;
+								//cout << "sec vert " << mappa_vertici[key_j1]<< endl;
+								//cout << "ter vert " << mappa_vertici[key_jb]<< endl;
+							    id_lati_faccia = Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_jb}),max({key_j1,key_jb})}], mappa_lati[{min({key_j,key_jb}),max({key_j,key_jb})}]};
+								//cout << "Primo lato " << mappa_lati[{key_j, key_j1}] << endl;
+								//cout << "sec lato " << mappa_lati[{key_j1, key_jb}] << endl;
+								//cout << "ter lato " << mappa_lati[{key_j, key_jb}] << endl;
 								mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}}); // Da correggere l'id
+								cout<< "f " << id_faccia << endl;
+								cout<< "v " << id_vertici_faccia.transpose()<< endl;
+								cout << "l " << id_lati_faccia.transpose()<< endl;
 								id_faccia++;
 								id_vertici_faccia = Vector3i{ mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb_m]}; // insieme id vertici per ogni faccia  
-							    id_lati_faccia = Vector3i{ mappa_lati[{key_j,key_j1}], mappa_lati[{key_j1,key_jb_m}], mappa_lati[{key_j,key_jb_m}]};
+								//cout << "Primo vert " << mappa_vertici[key_j]<< endl;
+								//cout << "sec vert " << mappa_vertici[key_j1]<< endl;
+								//cout << "ter vert " << mappa_vertici[key_jb_m]<< endl;
+							    id_lati_faccia = Vector3i{ mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_jb_m}),max({key_j1,key_jb_m})}], mappa_lati[{min({key_j,key_jb_m}),max({key_j,key_jb_m})}]};
+								//cout << "Primo lato " << mappa_lati[{key_j, key_j1}] << endl;
+								//cout << "sec lato " << mappa_lati[{key_j1, key_jb_m}] << endl;
+								//cout << "ter lato " << mappa_lati[{key_j, key_jb_m}] << endl;
 								mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}}); // Da correggere l'id
-								id_faccia++;
+								cout << "f "<< id_faccia << endl;
+								cout << "v "<< id_vertici_faccia.transpose()<< endl;
+								cout << "l " << id_lati_faccia.transpose()<< endl;
+								id_faccia++;	
 							}
 						}
-					}							
-                }
-			}
-		}
+						d = d + b + 1 - i;
+					}
+					
+					for (const auto& [key, value] : mappa_facce)
+					{
+						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
+					}
+						
+						
 	}
 }
