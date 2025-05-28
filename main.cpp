@@ -205,7 +205,7 @@ int main()
 							}
 							if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()){}
 							else{ mappa_lati.insert({{min({key_j,key_j1}), max({key_j,key_j1})} ,id_lato});
-							s_g_Cell1Ds << id_lato << " " << mappa_vertici[min({key_j,key_jb})]  << " " << mappa_vertici[max({key_j,key_jb})] << "\n";
+							s_g_Cell1Ds << id_lato << " " << mappa_vertici[min({key_j,key_j1})]  << " " << mappa_vertici[max({key_j,key_j1})] << "\n";
 							
 							id_lato++;
 							}
