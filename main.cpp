@@ -96,9 +96,9 @@ using namespace Eigen;
 int main()
 {
 	int p=3;
-	int b=1;
-	int c=0;   // Partiamo da un tetraedro e scegliamo b=2 & c=0
-	int q=3;
+	int b=2;
+	int c=0;   
+	int q=5;
 	
 	/*vector<vector<int>> cells = {
         {0, 3, 3, 0, 1, 2, 0, 3, 1},
@@ -107,16 +107,40 @@ int main()
         {3, 3, 3, 1, 2, 3, 3, 5, 4}
     };*/
 	
-	vector<vector<int>> cells = {
+	/*vector<vector<int>> cells = {
         {0, 3, 3, 0, 1, 2, 0, 4, 1},
-        {1, 3, 3, 0, 2, 3, 1, 5, 2},   // Questo è il Cell2 del tetraedro di partenza
+        {1, 3, 3, 0, 2, 3, 1, 5, 2},   // Questo è il Cell2 dell'ottaedro di partenza
         {2, 3, 3, 0, 3, 4, 2, 6, 3},
         {3, 3, 3, 0, 4, 1, 3, 7, 0},
 		{4, 3, 3, 5, 2, 1, 9, 4, 8},
 		{5, 3, 3, 5, 3, 2, 10, 5, 9},
 		{6, 3, 3, 5, 4, 3, 11, 6, 10},
 		{7, 3, 3, 5, 1, 4, 8, 7, 11}
+    };*/
+	
+	vector<vector<int>> cells = {
+        {0, 3, 3, 0, 1, 8, 0, 7, 3},
+		{1, 3, 3, 0, 8, 4, 3, 19, 1},   // Questo è il Cell2 dell'icosaedro di partenza
+		{2, 3, 3, 0, 4, 5, 1, 18, 2},
+		{3, 3, 3, 0, 5, 10, 2, 21, 4},
+		{4, 3, 3, 0, 10, 1, 4, 8, 0},
+		{5, 3, 3, 1, 10, 7, 8, 25, 6},
+		{6, 3, 3, 1, 7, 6, 6, 22, 5},
+		{7, 3, 3, 1, 6, 8, 5, 23, 7},
+		{8, 3, 3, 2, 9, 3, 12, 16, 9},
+		{9, 3, 3, 2, 4, 9, 10, 20, 12},
+		{10, 3, 3, 2, 5, 4, 11, 18, 10},
+		{11, 3, 3, 2, 11, 5, 13, 28, 11},
+		{12, 3, 3, 2, 3, 11, 9, 17, 13},
+		{13, 3, 3, 3, 6, 7, 14, 22, 15},
+		{14, 3, 3, 3, 7, 11, 15, 26, 17},
+		{15, 3, 3, 3, 9, 6, 16, 24, 14},
+		{16, 3, 3, 7, 10, 11, 25, 29, 26},
+		{17, 3, 3, 4, 8, 9, 19, 27, 20},
+		{18, 3, 3, 5, 11, 10, 28, 29, 21},
+		{19, 3, 3, 6, 9, 8, 24, 27, 23},
     };
+
 
 
     // Mappa che associa l'ID della faccia al vettore dei suoi vertici
@@ -140,13 +164,28 @@ int main()
         {3, { 0.57735027, -0.57735027, -0.57735027}}
     };*/
 	
-	vector<pair<int, Vector3d>> vertices = {
+	/*vector<pair<int, Vector3d>> vertices = {
         {0, {0,  0, 1}},
         {1, {0, -1, 0}},    // Questo è il Cell0 dell'ottaedro di partenza
         {2, { 1, 0, 0}},
         {3, { 0, 1, 0}},
 		{4, {-1, 0, 0}},
 		{5, {0, 0, -1}}
+    };*/
+	
+	vector<pair<int, Vector3d>> vertices = {
+        {0, {0.52573111, 0.85065081, 0.00000000}},
+		{1, {0.00000000, 0.52573111, 0.85065081}},
+        {2, {-0.52573111, 0.85065081, 0.00000000}},
+		{3, {0.85065081, 0.00000000, 0.52573111}},		// Questo è il Cell0 dell'icosaedro di partenza
+        {4, {0.85065081, 0.00000000, -0.52573111}},
+		{5, {0.00000000, 0.52573111, -0.85065081}},
+		{6, {-0.85065081, 0.00000000, -0.52573111}},
+		{7, {-0.85065081, 0.00000000, 0.52573111}},
+		{8, {0.52573111, -0.85065081, 0.00000000}},
+        {9, {-0.52573111, -0.85065081, 0.00000000}},
+		{10, {0.00000000, -0.52573111, 0.85065081}},
+		{11, {0.00000000, -0.52573111, -0.85065081}}
     };
 
     map<int, Vector3d> tCell0DsCoordinates; // Mappa che associa l'ID di un vertice alle sue coordinate
@@ -389,3 +428,4 @@ void ConvertMapToExportData(const std::map<std::array<int, 3>, int>& input_map,
 ucdUtilities.ExportPoints("output.ucd", points, properties, materials);
 
 */
+
