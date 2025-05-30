@@ -96,7 +96,7 @@ using namespace Eigen;
 int main()
 {
 	int p=3;
-	int b=3;
+	int b=1;
 	int c=0;   // Partiamo da un tetraedro e scegliamo b=2 & c=0
 	int q=3;
 	
@@ -217,10 +217,142 @@ int main()
 			}
 			
 			if(q==4){
+				int F = 8;
+				int F_s_g = 8 * T;
+				int V_s_g = 4 * T + 2;
+				int L_s_g = 12 * T;
+				int id_vertice = 0;
+				int id_lato = 0;
+				int id_faccia = 0;
+				map<array<int,3> , int> mappa_vertici;    
+				map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+				map<int, pair<Vector3i, Vector3i>> mappa_facce;
+				//Siamo nel caso ottaedro:
+				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
+				for(int i = 0; i < F; i++) {
+					int id_A = tCell2DsVertices[i][0];
+					int id_B = tCell2DsVertices[i][1]; 
+					int id_C = tCell2DsVertices[i][2];
+					Vector3d A = tCell0DsCoordinates[id_A];
+					Vector3d B = tCell0DsCoordinates[id_B];
+					Vector3d C = tCell0DsCoordinates[id_C];	
+					vector<Vector3d> points = punti_triangolazione(A,B,C,b);
+					if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+					{
+						cerr << "errore nella compilazione del file" << endl;
+						return 1;
+					};
+					
+					
+					if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+					{
+						cerr << "errore nella compilazione del file" << endl;
+						return 1;
+					};	
+					
+					if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
+					{
+						cerr << "errore nella compilazione del file" << endl;
+						return 1;
+					};					
+                }
+				
+				for (const auto& [key, value] : mappa_facce)
+				{
+					s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
+				}
+				
+				if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+				{
+					cerr << "errore nella compilazione del file" << endl;
+					return 1;
+				};
+				
+				
+				
+				MatrixXd Cell0DsCoordinates(3, V_s_g);
+				for (const auto& [coord,id] : mappa_vertici){
+					for (int d = 0; d < 3; ++d) {
+						Cell0DsCoordinates(d,id) = coord[d];
+					}
+			    }
+				for (int d = 0; d < 3; ++d) {
+					std::cout << "Riga " << d << ": ";
+					for (int id = 0; id < V_s_g; ++id) {
+						std::cout << Cell0DsCoordinates(d,id) << " ";
+					}
+					std::cout << "\n";
+				}
 				
 			}
 			
 			if(q==5){
+				int F = 20;
+				int F_s_g = 20 * T;
+				int V_s_g = 10 * T + 2;
+				int L_s_g = 30 * T;
+				int id_vertice = 0;
+				int id_lato = 0;
+				int id_faccia = 0;
+				map<array<int,3> , int> mappa_vertici;    
+				map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+				map<int, pair<Vector3i, Vector3i>> mappa_facce;
+				//Siamo nel caso icosaedro:
+				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
+				for(int i = 0; i < F; i++) {
+					int id_A = tCell2DsVertices[i][0];
+					int id_B = tCell2DsVertices[i][1]; 
+					int id_C = tCell2DsVertices[i][2];
+					Vector3d A = tCell0DsCoordinates[id_A];
+					Vector3d B = tCell0DsCoordinates[id_B];
+					Vector3d C = tCell0DsCoordinates[id_C];	
+					vector<Vector3d> points = punti_triangolazione(A,B,C,b);
+					if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+					{
+						cerr << "errore nella compilazione del file" << endl;
+						return 1;
+					};
+					
+					
+					if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+					{
+						cerr << "errore nella compilazione del file" << endl;
+						return 1;
+					};	
+					
+					if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
+					{
+						cerr << "errore nella compilazione del file" << endl;
+						return 1;
+					};					
+                }
+				
+				for (const auto& [key, value] : mappa_facce)
+				{
+					s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
+				}
+				
+				if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+				{
+					cerr << "errore nella compilazione del file" << endl;
+					return 1;
+				};
+				
+				
+				
+				MatrixXd Cell0DsCoordinates(3, V_s_g);
+				for (const auto& [coord,id] : mappa_vertici){
+					for (int d = 0; d < 3; ++d) {
+						Cell0DsCoordinates(d,id) = coord[d];
+					}
+			    }
+				for (int d = 0; d < 3; ++d) {
+					std::cout << "Riga " << d << ": ";
+					for (int id = 0; id < V_s_g; ++id) {
+						std::cout << Cell0DsCoordinates(d,id) << " ";
+					}
+					std::cout << "\n";
+				}
 				
 			}
 		}
