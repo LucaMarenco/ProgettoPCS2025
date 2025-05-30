@@ -43,6 +43,12 @@ list(APPEND SolidiPlatonici_SOURCES ${SolidiPlatonici_sources})
 list(APPEND SolidiPlatonici_HEADERS ${SolidiPlatonici_headers})
 list(APPEND SolidiPlatonici_INCLUDE ${SolidiPlatonici_includes})
 
+add_subdirectory(ExportParaview)
+
+list(APPEND PolygonalMesh_SOURCES ${src_paraview_sources})
+list(APPEND PolygonalMesh_HEADERS ${src_paraview_headers})
+list(APPEND PolygonalMesh_INCLUDE ${src_paraview_includes})
+
 # Create executable
 ################################################################################
 add_executable(${PROJECT_NAME}
