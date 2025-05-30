@@ -1,12 +1,8 @@
-# CMakeLists.txt in src/
+list(APPEND SolidiPlatonici_headers ${CMAKE_CURRENT_SOURCE_DIR}/Utils.hpp)
+list(APPEND SolidiPlatonici_sources ${CMAKE_CURRENT_SOURCE_DIR}/Utils.cpp)
 
-add_library(utils
-    utils.cpp
-)
+list(APPEND SolidiPlatonici_includes ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Dichiara il path degli header locali (per includere "Utils.hpp")
-target_include_directories(utils
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${EIGEN3_INCLUDE_DIR}    # 👈 aggiunto per garantire visibilità a Eigen
-)
+set(SolidiPlatonici_sources ${SolidiPlatonici_sources} PARENT_SCOPE)
+set(SolidiPlatonici_headers ${SolidiPlatonici_headers} PARENT_SCOPE)
+set(SolidiPlatonici_includes ${SolidiPlatonici_includes} PARENT_SCOPE)
