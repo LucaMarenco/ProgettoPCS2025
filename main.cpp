@@ -100,12 +100,24 @@ int main()
 	int c=0;   // Partiamo da un tetraedro e scegliamo b=2 & c=0
 	int q=3;
 	
-	vector<vector<int>> cells = {
+	/*vector<vector<int>> cells = {
         {0, 3, 3, 0, 1, 2, 0, 3, 1},
-        {1, 3, 3, 0, 1, 3, 0, 4, 2},   // Questo è il Cell2 del poliedro di partenza
+        {1, 3, 3, 0, 1, 3, 0, 4, 2},   // Questo è il Cell2 del tetraedro di partenza
         {2, 3, 3, 0, 3, 2, 2, 5, 1},
         {3, 3, 3, 1, 2, 3, 3, 5, 4}
+    };*/
+	
+	vector<vector<int>> cells = {
+        {0, 3, 3, 0, 1, 2, 0, 4, 1},
+        {1, 3, 3, 0, 2, 3, 1, 5, 2},   // Questo è il Cell2 del tetraedro di partenza
+        {2, 3, 3, 0, 3, 4, 2, 6, 3},
+        {3, 3, 3, 0, 4, 1, 3, 7, 0},
+		{4, 3, 3, 5, 2, 1, 9, 4, 8},
+		{5, 3, 3, 5, 3, 2, 10, 5, 9},
+		{6, 3, 3, 5, 4, 3, 11, 6, 10},
+		{7, 3, 3, 5, 1, 4, 8, 7, 11}
     };
+
 
     // Mappa che associa l'ID della faccia al vettore dei suoi vertici
     map<int, vector<int>> tCell2DsVertices;
@@ -121,11 +133,20 @@ int main()
         tCell2DsVertices[face_id] = vertices;
     }
 		
-	vector<pair<int, Vector3d>> vertices = {
+	/*vector<pair<int, Vector3d>> vertices = {
         {0, { 0.57735027,  0.57735027,  0.57735027}},
-        {1, {-0.57735027, -0.57735027,  0.57735027}},    // Questo è il Cell0 del poliedro di partenza
+        {1, {-0.57735027, -0.57735027,  0.57735027}},    // Questo è il Cell0 del tetraedro di partenza
         {2, {-0.57735027,  0.57735027, -0.57735027}},
         {3, { 0.57735027, -0.57735027, -0.57735027}}
+    };*/
+	
+	vector<pair<int, Vector3d>> vertices = {
+        {0, {0,  0, 1}},
+        {1, {0, -1, 0}},    // Questo è il Cell0 dell'ottaedro di partenza
+        {2, { 1, 0, 0}},
+        {3, { 0, 1, 0}},
+		{4, {-1, 0, 0}},
+		{5, {0, 0, -1}}
     };
 
     map<int, Vector3d> tCell0DsCoordinates; // Mappa che associa l'ID di un vertice alle sue coordinate
@@ -206,13 +227,6 @@ int main()
 						Cell0DsCoordinates(d,id) = coord[d];
 					}
 			    }
-				for (int d = 0; d < 3; ++d) {
-					std::cout << "Riga " << d << ": ";
-					for (int id = 0; id < V_s_g; ++id) {
-						std::cout << Cell0DsCoordinates(d,id) << " ";
-					}
-					std::cout << "\n";
-				}
 
 			}
 			
@@ -276,13 +290,6 @@ int main()
 						Cell0DsCoordinates(d,id) = coord[d];
 					}
 			    }
-				for (int d = 0; d < 3; ++d) {
-					std::cout << "Riga " << d << ": ";
-					for (int id = 0; id < V_s_g; ++id) {
-						std::cout << Cell0DsCoordinates(d,id) << " ";
-					}
-					std::cout << "\n";
-				}
 				
 			}
 			
@@ -346,13 +353,6 @@ int main()
 						Cell0DsCoordinates(d,id) = coord[d];
 					}
 			    }
-				for (int d = 0; d < 3; ++d) {
-					std::cout << "Riga " << d << ": ";
-					for (int id = 0; id < V_s_g; ++id) {
-						std::cout << Cell0DsCoordinates(d,id) << " ";
-					}
-					std::cout << "\n";
-				}
 				
 			}
 		}
