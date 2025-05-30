@@ -156,6 +156,7 @@ int main()
 				int id_faccia = 0;
 				map<array<int,3> , int> mappa_vertici;    
 				map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+				map<int, pair<Vector3i, Vector3i>> mappa_facce;
 				//Siamo nel caso tetraedro:
 				//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
 				for(int i = 0; i < F; i++) {
@@ -179,22 +180,17 @@ int main()
 						return 1;
 					};	
 					
-					map<int, pair<Vector3i, Vector3i>> mappa_facce;
 					if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
 					{
 						cerr << "errore nella compilazione del file" << endl;
 						return 1;
-					};
-					
-                    
-					
-					for (const auto& [key, value] : mappa_facce)
-					{
-						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
-					}
-					
-									
+					};					
                 }
+				
+				for (const auto& [key, value] : mappa_facce)
+				{
+					s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
+				}
 				
 				if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
 				{
