@@ -252,3 +252,19 @@ bool file_vertici_II(const vector<Vector3d>& points,
 	
 
 			   
+
+/*
+Alternativa per suddividere le facce della triangolazione II
+std::vector<Vec3> subdivideFace(const Vec3& A, const Vec3& B, const Vec3& C, int freq) {
+    std::vector<Vec3> points;
+    for (int i = 0; i <= freq; ++i) {
+        Vec3 AB = A * (1 - i / (double)freq) + B * (i / (double)freq);
+        Vec3 AC = A * (1 - i / (double)freq) + C * (i / (double)freq);
+        for (int j = 0; j <= i; ++j) {
+            Vec3 P = AB * (1 - j / (double)i) + AC * (j / (double)i);
+            P.normalize(); // proiezione sulla sfera
+            points.push_back(P);
+        }
+    }
+    return points;
+}*/
