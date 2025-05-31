@@ -88,6 +88,7 @@ crea 4 file txt che rappresentano il poliedro geodetico che si ottiene a partire
 #include <Eigen/Dense>
 #include <cmath>
 #include <iomanip>
+#include <optional>
 #include "Utils.hpp"
 
 using namespace std;
@@ -95,17 +96,17 @@ using namespace Eigen;
 
 int main()
 {
-	int p=3;
-	int b=2;
-	int c=0;   
-	int q=5;
+	int p = 3;
+	int b = 2;
+	int c = 2;   
+	int q = 3;
 	
-	/*vector<vector<int>> cells = {
+	vector<vector<int>> cells = {
         {0, 3, 3, 0, 1, 2, 0, 3, 1},
         {1, 3, 3, 0, 1, 3, 0, 4, 2},   // Questo è il Cell2 del tetraedro di partenza
         {2, 3, 3, 0, 3, 2, 2, 5, 1},
         {3, 3, 3, 1, 2, 3, 3, 5, 4}
-    };*/
+    };
 	
 	/*vector<vector<int>> cells = {
         {0, 3, 3, 0, 1, 2, 0, 4, 1},
@@ -118,7 +119,7 @@ int main()
 		{7, 3, 3, 5, 1, 4, 8, 7, 11}
     };*/
 	
-	vector<vector<int>> cells = {
+	/*vector<vector<int>> cells = {
         {0, 3, 3, 0, 1, 8, 0, 7, 3},
 		{1, 3, 3, 0, 8, 4, 3, 19, 1},   // Questo è il Cell2 dell'icosaedro di partenza
 		{2, 3, 3, 0, 4, 5, 1, 18, 2},
@@ -139,7 +140,7 @@ int main()
 		{17, 3, 3, 4, 8, 9, 19, 27, 20},
 		{18, 3, 3, 5, 11, 10, 28, 29, 21},
 		{19, 3, 3, 6, 9, 8, 24, 27, 23},
-    };
+    };*/
 
 
 
@@ -157,12 +158,12 @@ int main()
         tCell2DsVertices[face_id] = vertices;
     }
 		
-	/*vector<pair<int, Vector3d>> vertices = {
+	vector<pair<int, Vector3d>> vertices = {
         {0, { 0.57735027,  0.57735027,  0.57735027}},
         {1, {-0.57735027, -0.57735027,  0.57735027}},    // Questo è il Cell0 del tetraedro di partenza
         {2, {-0.57735027,  0.57735027, -0.57735027}},
         {3, { 0.57735027, -0.57735027, -0.57735027}}
-    };*/
+    };
 	
 	/*vector<pair<int, Vector3d>> vertices = {
         {0, {0,  0, 1}},
@@ -173,7 +174,7 @@ int main()
 		{5, {0, 0, -1}}
     };*/
 	
-	vector<pair<int, Vector3d>> vertices = {
+	/*vector<pair<int, Vector3d>> vertices = {
         {0, {0.52573111, 0.85065081, 0.00000000}},
 		{1, {0.00000000, 0.52573111, 0.85065081}},
         {2, {-0.52573111, 0.85065081, 0.00000000}},
@@ -186,7 +187,7 @@ int main()
         {9, {-0.52573111, -0.85065081, 0.00000000}},
 		{10, {0.00000000, -0.52573111, 0.85065081}},
 		{11, {0.00000000, -0.52573111, -0.85065081}}
-    };
+    };*/
 
     map<int, Vector3d> tCell0DsCoordinates; // Mappa che associa l'ID di un vertice alle sue coordinate
 
@@ -269,7 +270,7 @@ int main()
 
 			}
 			
-			if(q==4){
+			else if(q == 4){
 				int F = 8;
 				int F_s_g = 8 * T;
 				int V_s_g = 4 * T + 2;
@@ -332,7 +333,7 @@ int main()
 				
 			}
 			
-			if(q==5){
+			else if(q == 5){
 				int F = 20;
 				int F_s_g = 20 * T;
 				int V_s_g = 10 * T + 2;
@@ -395,6 +396,44 @@ int main()
 				
 			}
 		}
+		// Triangolazione classe II
+		else if(b == c && b >= 1) {
+			int T = b * b + b * c + c * c; 
+			ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
+			ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
+			ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
+			ofstream s_g_Cell3Ds("s_g_Cell3Ds.txt");
+			s_g_Cell0Ds << "Id " << "x " << "y " << "z" << "\n";
+			s_g_Cell1Ds << "Id " << "start_vertex " << "end_vertex" << "\n"; 
+			s_g_Cell2Ds << "Id " << "num_vertices " << "num_edges " << "vertices " << "edges " << "\n";
+			s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
+			if (q == 3) {
+				int F = 4;
+				int F_s_g = 4 * (3 * b * b + 3 * b);
+				int V_s_g = 4 + 6 * (2 * b - 1) + 4 * (3 * b * b / 2 - 3 * b / 2 + 1);
+				int L_s_g = 4 * (2 * b) + 4 * (9 * b * b / 2 + 3 * b / 2);
+				int id_vertice = 0;
+				int id_lato = 0;
+				int id_faccia = 0;
+				map<array<int,3> , int> mappa_vertici;    
+				map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+				map<int, pair<Vector3i, Vector3i>> mappa_facce;
+				for(int i = 0; i < F; i++) {
+					int id_A = tCell2DsVertices[i][0];
+					int id_B = tCell2DsVertices[i][1]; 
+					int id_C = tCell2DsVertices[i][2];
+					Vector3d A = tCell0DsCoordinates[id_A];
+					Vector3d B = tCell0DsCoordinates[id_B];
+					Vector3d C = tCell0DsCoordinates[id_C];
+					vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
+					if(!file_vertici_II(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+					{
+						cerr << "errore nella compilazione del file" << endl;
+						return 1;
+					};
+				}
+			}
+		}
 	}
 }
 
@@ -428,4 +467,3 @@ void ConvertMapToExportData(const std::map<std::array<int, 3>, int>& input_map,
 ucdUtilities.ExportPoints("output.ucd", points, properties, materials);
 
 */
-
