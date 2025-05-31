@@ -411,7 +411,7 @@ int main()
 				int F = 4;
 				int F_s_g = 4 * (3 * b * b + 3 * b);
 				int V_s_g = 4 + 6 * (2 * b - 1) + 4 * (3 * b * b / 2 - 3 * b / 2 + 1);
-				int L_s_g = 4 * (2 * b) + 4 * (9 * b * b / 2 + 3 * b / 2);
+				int L_s_g = 6 * (2 * b) + 4 * (9 * b * b / 2 + 3 * b / 2);
 				int id_vertice = 0;
 				int id_lato = 0;
 				int id_faccia = 0;
