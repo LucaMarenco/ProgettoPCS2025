@@ -171,21 +171,25 @@ optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vect
     return punto_intersezione; // Intersezione tra AB e CD
 }
 
-void punti_lungo_il_lato(int b, Vector3d A, Vector3d B, vector<Vector3d>& punti_l_l) { // Per prendere i punti che si vanno a formare
-	double lunghezza_lato = (B - A).norm();                                            // lungo i lati della faccia che ho triangolato
-	punti_l_l.push_back(A);
-	double suddivisione = lunghezza_lato / (2 * b);
-	for (int i = 1; i < 2 * b; i++) {
-		punti_l_l.push_back(((suddivisione * i) * (B - A) / lunghezza_lato) + A);
+vector<Vector3d> punti_lungo_il_lato(int b, Vector3d A, Vector3d B) { // Per prendere i punti che si vanno a formare
+	vector<Vector3d> punti_l_l;
+	//double lunghezza_lato = (B - A).norm();
+	//punti_l_l.push_back(A);
+	int frequenza = 2 * b;
+	for (int i = 0; i < frequenza; i++) {
+		Vector3d P = A * (1-i/(double)frequenza) + B * (i/(double)frequenza);
+		punti_l_l.push_back(P);
 	}
 } 
 
-void punti_lungo_il_lato_normalizzati(int b, Vector3d A, Vector3d B, vector<Vector3d>& punti_l_l) {
-	double lunghezza_lato = (B - A).norm();
-	punti_l_l.push_back(A);
-	double suddivisione = lunghezza_lato / (2 * b);
-	for (int i = 1; i < 2 * b; i++) {
-		punti_l_l.push_back(((suddivisione * i * (B - A) / lunghezza_lato) + A).normalized());
+vector<Vector3d> punti_lungo_il_lato_normalizzati(int b, Vector3d A, Vector3d B) {
+	vector<Vector3d> punti_l_l;
+	//double lunghezza_lato = (B - A).norm();
+	//punti_l_l.push_back(A);
+	int frequenza = 2 * b;
+	for (int i = 0; i < frequenza; i++) {
+		vector3d P = A * (1-i/(double)frequenza) + B * (i/(double)frequenza)
+		punti_l_l.push_back(P.normalized());
 	}
 } 
 
