@@ -42,6 +42,9 @@ bool file_poliedro(int& F_s_g,
 				   int& V_s_g,
 				   int& L_s_g,
 				   ofstream& s_g_Cell3Ds);
+				   
+MatrixXd Cell0DsConverter(int V_s_g, map<array<int,3> , int> mappa_vertici);
+MatrixXi Cell1DsConverter(int L_s_g, map<array<int,3> , int> mappa_vertici , map<pair<array<int,3>, array<int,3>>, int> mappa_lati) ;
 
 optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vector3d D);
 

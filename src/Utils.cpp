@@ -146,6 +146,29 @@ bool file_poliedro(int& F_s_g,
 	return true;
 }
 
+
+MatrixXd Cell0DsConverter(int V_s_g, map<array<int,3> , int> mappa_vertici) {
+	MatrixXd Cell0DsCoordinates(3, V_s_g);
+	for (const auto& [coord,id] : mappa_vertici){
+		for (int d = 0; d < 3; ++d) {
+			Cell0DsCoordinates(d,id) = coord[d];
+		}
+	}		
+	return Cell0DsCoordinates;
+}
+
+
+MatrixXi Cell1DsConverter(int L_s_g, map<array<int,3> , int> mappa_vertici, map<pair<array<int,3>, array<int,3>>, int> mappa_lati) {
+	MatrixXi Cell1DsExtrema(2, L_s_g);
+	for (const auto& [coord,id] : mappa_lati){
+		Cell1DsExtrema(0,id) = mappa_vertici[coord.first];
+		Cell1DsExtrema(1,id) = mappa_vertici[coord.second];
+	}		
+	return Cell1DsExtrema;
+}
+
+
+
 optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vector3d D)  
 {
     Vector3d dir1 = B - A;  // Vettore AB
