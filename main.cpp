@@ -97,8 +97,8 @@ using namespace Eigen;
 int main()
 {
 	int p = 3;
-	int b = 2;
-	int c = 2;   
+	int b = 3;
+	int c = 3;   
 	int q = 3;
 	
 	vector<vector<int>> cells = {
@@ -411,7 +411,7 @@ int main()
 				int F = 4;
 				int F_s_g = 4 * (3 * b * b + 3 * b);
 				int V_s_g = 4 + 6 * (2 * b - 1) + 4 * (3 * b * b / 2 - 3 * b / 2 + 1);
-				int L_s_g = 6 * (2 * b) + 4 * (9 * b * b / 2 + 3 * b / 2);
+				int L_s_g = 4 * (2 * b) + 4 * (9 * b * b / 2 + 3 * b / 2);
 				int id_vertice = 0;
 				int id_lato = 0;
 				int id_faccia = 0;
@@ -467,3 +467,4 @@ void ConvertMapToExportData(const std::map<std::array<int, 3>, int>& input_map,
 ucdUtilities.ExportPoints("output.ucd", points, properties, materials);
 
 */
+

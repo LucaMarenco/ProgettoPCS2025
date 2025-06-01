@@ -164,45 +164,55 @@ optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vect
 
     // Controllo se l'intersezione cade dentro i segmenti [0,1]
     if (t < 0.0 || t > 1.0 || s < 0.0 || s > 1.0) {
-        return nullopt; // nessuna intersezione sui segmenti (non restituisce niente)
+        return std::nullopt; // nessuna intersezione sui segmenti
     }
 
     Vector3d punto_intersezione = A + t * dir1;
     return punto_intersezione; // Intersezione tra AB e CD
 }
 
-vector<Vector3d> punti_lungo_il_lato(int b, Vector3d A, Vector3d B) { // Per prendere i punti che si vanno a formare
-	vector<Vector3d> punti_l_l;
-	//double lunghezza_lato = (B - A).norm();
-	//punti_l_l.push_back(A);
-	int frequenza = 2 * b;
-	for (int i = 0; i < frequenza; i++) {
-		Vector3d P = A * (1-i/(double)frequenza) + B * (i/(double)frequenza);
-		punti_l_l.push_back(P);
+vector<Vector3d> punti_lungo_i_lati(int b, Vector3d A, Vector3d B, Vector3d C) { // Per prendere i punti che si vanno a formare
+	vector<Vector3d> points;                                                     // lungo i lati della faccia che ho triangolato
+	double lunghezza_lato = (B - A).norm();                              
+	points.push_back(A);
+	double suddivisione = lunghezza_lato / (2 * b);
+	for (int i = 1; i < 2 * b; i++) {
+		points.push_back(((suddivisione * i) * (B - A) / lunghezza_lato) + A);
 	}
+	points.push_back(B);
+	for (int i = 1; i < 2 * b; i++) {
+		points.push_back(((suddivisione * i) * (C - B) / lunghezza_lato) + B);
+	}
+	points.push_back(C);
+	for (int i = 1; i < 2 * b; i++) {
+		points.push_back(((suddivisione * i) * (A - C) / lunghezza_lato) + C);
+	}
+	return points;
 } 
 
-vector<Vector3d> punti_lungo_il_lato_normalizzati(int b, Vector3d A, Vector3d B) {
+vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, Vector3d A, Vector3d B, Vector3d C) {
 	vector<Vector3d> punti_l_l;
-	//double lunghezza_lato = (B - A).norm();
-	//punti_l_l.push_back(A);
-	int frequenza = 2 * b;
-	for (int i = 0; i < frequenza; i++) {
-		vector3d P = A * (1-i/(double)frequenza) + B * (i/(double)frequenza)
-		punti_l_l.push_back(P.normalized());
+	double lunghezza_lato = (B - A).norm();
+	punti_l_l.push_back(A);
+	double suddivisione = lunghezza_lato / (2 * b);
+	for (int i = 1; i < 2 * b; i++) {
+		punti_l_l.push_back(((suddivisione * i * (B - A) / lunghezza_lato) + A).normalized());
 	}
+	punti_l_l.push_back(B);
+	for (int i = 1; i < 2 * b; i++) {
+	punti_l_l.push_back(((suddivisione * i * (C - B) / lunghezza_lato) + B).normalized());
+	}
+	punti_l_l.push_back(C);
+	for (int i = 1; i < 2 * b; i++) {
+		punti_l_l.push_back(((suddivisione * i * (A - C) / lunghezza_lato) + C).normalized());
+	}
+	return punti_l_l;
 } 
 
 					
 vector<Vector3d> punti_triangolazione_II(Vector3d A, Vector3d B, Vector3d C, int b) {
-	vector<Vector3d> points;
-	punti_lungo_il_lato_normalizzati(b, A, B, points);
-	punti_lungo_il_lato_normalizzati(b, B, C, points); // Punti lungo i lati della faccia già proiettati sulla sfera
-	punti_lungo_il_lato_normalizzati(b, C, A, points);
-	vector<Vector3d> punti_lungo_lato;
-	punti_lungo_il_lato(b, A, B, punti_lungo_lato);
-	punti_lungo_il_lato(b, B, C, punti_lungo_lato); // Punti lungo i lati della faccia
-	punti_lungo_il_lato(b, C, A, punti_lungo_lato);
+	vector<Vector3d> points = punti_lungo_i_lati_normalizzati(b, A, B, C); // Punti lungo i lati della faccia già proiettati sulla sfera
+	vector<Vector3d> punti_lungo_lato = punti_lungo_i_lati(b, A, B, C);
 	vector<pair<Vector3d, Vector3d>> verticali; // Coppie di estremi che formano i lati verticali
 	int d_base = 1;
 	for(int j = 2; j < 4 * b - 1; j++) {  // Prendo i lati verticali per poi calcolare l'intersezione di ogni lato obliquo con 
@@ -253,22 +263,35 @@ bool file_vertici_II(const vector<Vector3d>& points,
 	return true;
 }
 
+/* Sto provando a fare il file per i lati
+bool file_lati_II(const vector<Vector3d>& points, 
+			   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
+			   map<array<int,3> , int>& mappa_vertici,
+			   int& id_lato,
+			   int& b,
+			   ofstream& s_g_Cell1Ds) {
+	for(int i = 0; i < 6 * b - 1; i++) { // Qua sto mettendo i lati dati dai punti sul bordo della faccia
+		auto key_j = to_array(points[i]);
+		auto key_j1 = to_array(points[i+1]);
+		if (mappa_lati.find({key_j,key_j1}) == mappa_lati.end()) {
+			mappa_lati.insert({key_j, key_j1}, id_lato);
+			s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1]  <<"\n";
+			id_lato++;
+		}
+	}			
+	for(int j = 0; j < points.size() - 6 * b; j++) { 
+		auto key_j = to_array(points[6 * b + j - 1]);
+		auto key_j1 = to_array(points[6 * b + j]);
+		auto key_j2 = to_array(points[6 * b + j - 1]);
+		auto key_j3 = to_array(points[6 * b + j - 1]);
+		auto key_j4 = to_array(points[6 * b + j - 1]);
+		auto key_j5 = to_array(points[6 * b + j - 1]);
+		auto key_j6 = to_array(points[6 * b + j - 1]);
+			
+	} 
+} */
+	
+
 	
 
 			   
-
-/*
-Alternativa per suddividere le facce della triangolazione II
-std::vector<Vec3> subdivideFace(const Vec3& A, const Vec3& B, const Vec3& C, int freq) {
-    std::vector<Vec3> points;
-    for (int i = 0; i <= freq; ++i) {
-        Vec3 AB = A * (1 - i / (double)freq) + B * (i / (double)freq);
-        Vec3 AC = A * (1 - i / (double)freq) + C * (i / (double)freq);
-        for (int j = 0; j <= i; ++j) {
-            Vec3 P = AB * (1 - j / (double)i) + AC * (j / (double)i);
-            P.normalize(); // proiezione sulla sfera
-            points.push_back(P);
-        }
-    }
-    return points;
-}*/

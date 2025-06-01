@@ -45,7 +45,9 @@ bool file_poliedro(int& F_s_g,
 
 optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vector3d D);
 
-void punti_lungo_il_lato(int b, Vector3d A, Vector3d B, vector<Vector3d>& punti_l_l);
+vector<Vector3d> punti_lungo_i_lati(int b, Vector3d A, Vector3d B, Vector3d C);
+
+vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, Vector3d A, Vector3d B, Vector3d C);
 
 vector<Vector3d> punti_triangolazione_II(Vector3d A, Vector3d B, Vector3d C, int b);
 
@@ -54,4 +56,3 @@ bool file_vertici_II(const vector<Vector3d>& points,
 				  int& id_vertice, 
 				  ofstream& s_g_Cell0Ds);
 
-void punti_lungo_il_lato_normalizzati(int b, Vector3d A, Vector3d B, vector<Vector3d>& punti_l_l);
