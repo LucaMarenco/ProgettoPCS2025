@@ -475,6 +475,11 @@ int main(int argc, char *argv[])
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
+						if(!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						};
 					}
 				}
 			}
