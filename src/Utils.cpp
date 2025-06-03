@@ -102,7 +102,7 @@ bool file_facce(const vector<Vector3d>& points,
 			auto key_j1 = to_array(points[j+1]);
 			auto key_jb = to_array(points[j+b+1-i]);
 							
-			if( i==0){
+			if(i == 0){
 				id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]}; 
 				if (mappa_lati.find({min({key_j,key_jb}),max({key_j,key_jb})}) != mappa_lati.end()){
 					id_lati_faccia= Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_jb}),max({key_j1,key_jb})}], mappa_lati[{min({key_j,key_jb}),max({key_j,key_jb})}]};
@@ -286,35 +286,107 @@ bool file_vertici_II(const vector<Vector3d>& points,
 	return true;
 }
 
-/* Sto provando a fare il file per i lati
-bool file_lati_II(const vector<Vector3d>& points, 
-			   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
-			   map<array<int,3> , int>& mappa_vertici,
-			   int& id_lato,
-			   int& b,
-			   ofstream& s_g_Cell1Ds) {
-	for(int i = 0; i < 6 * b - 1; i++) { // Qua sto mettendo i lati dati dai punti sul bordo della faccia
-		auto key_j = to_array(points[i]);
-		auto key_j1 = to_array(points[i+1]);
-		if (mappa_lati.find({key_j,key_j1}) == mappa_lati.end()) {
-			mappa_lati.insert({key_j, key_j1}, id_lato);
-			s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1]  <<"\n";
-			id_lato++;
+// Questa triangolazione non è normalizzata e non contiene duplicati
+
+vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C, int b) {
+	vector<Vector3d> points = punti_lungo_i_lati(b, A, B, C); // Punti lungo i lati della faccia già proiettati sulla sfera
+	vector<Vector3d> punti_lungo_lato = punti_lungo_i_lati(b, A, B, C);
+	vector<pair<Vector3d, Vector3d>> verticali; // Coppie di estremi che formano i lati verticali
+	int d_base = 1;
+	for(int j = 2; j < 4 * b - 1; j++) {  // Prendo i lati verticali per poi calcolare l'intersezione di ogni lato obliquo con 
+		if(j % 2 == 0) {                  // tutte le verticali prendendo così tutti i punti 
+			verticali.push_back({punti_lungo_lato[j], punti_lungo_lato[6 * b - d_base]});
+			d_base++;
+		}	
+	}
+	int d_inclinato_1 = 0;
+	int d_inclinato_2 = 1;
+	for(int i = 0; i < 6 * b; i++) {
+		if (i % 2 == 0 && i < 2 * b) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sul lato "sinistro"
+			for(int k = 0; k < verticali.size(); k++) {
+				auto intersezione = calcola_intersezione(punti_lungo_lato[i], punti_lungo_lato[3 * b - d_inclinato_1], verticali[k].first, verticali[k].second);  		
+				if (intersezione) {
+					points.push_back(*intersezione);
+				}
+			}
+			d_inclinato_1++;
 		}
-	}			
-	for(int j = 0; j < points.size() - 6 * b; j++) { 
-		auto key_j = to_array(points[6 * b + j - 1]);
-		auto key_j1 = to_array(points[6 * b + j]);
-		auto key_j2 = to_array(points[6 * b + j - 1]);
-		auto key_j3 = to_array(points[6 * b + j - 1]);
-		auto key_j4 = to_array(points[6 * b + j - 1]);
-		auto key_j5 = to_array(points[6 * b + j - 1]);
-		auto key_j6 = to_array(points[6 * b + j - 1]);
-			
-	} 
-} */
-	
+		else if (i % 2 == 0 && i > 4 * b) {
+			for(int k = 0; k < verticali.size(); k++) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sulla base
+				auto intersezione = calcola_intersezione(punti_lungo_lato[i], punti_lungo_lato[4 * b - d_inclinato_2], verticali[k].first, verticali[k].second);
+				if (intersezione) {
+					points.push_back(*intersezione);
+				}
+			}
+			d_inclinato_2++;
+		}		
+	}
+	map<array<int,3> , int> mappa_vertici;
+	vector<Vector3d> punti_unici;
+	int id_vertice = 0;
+	for(int z = 0; z < points.size(); z++) {
+		array<int,3> key = to_array(points[z]);    
+		if (mappa_vertici.find(key) == mappa_vertici.end()) {
+			mappa_vertici[key] = id_vertice;
+			punti_unici.push_back(points[z]);				// assegna nuovo ID a vertice se non esiste						
+		}
+	}
+	return punti_unici;
+}
 
-	
+bool file_lati_II(const vector<Vector3d>& points, 
+                 map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
+                 map<array<int,3>, int>& mappa_vertici,
+                 int& id_lato,
+                 int& b,
+                 ofstream& s_g_Cell1Ds) 
+{
+    // Lati sul bordo della faccia
+    for (int i = 0; i < 6 * b - 1; i++) {
+        auto key_j = to_array(points[i].normalized());
+        auto key_j1 = to_array(points[i + 1].normalized());
+        if (mappa_lati.find({key_j, key_j1}) == mappa_lati.end() &&
+            mappa_lati.find({key_j1, key_j}) == mappa_lati.end()) 
+        {
+            mappa_lati.insert({{key_j, key_j1}, id_lato});
+            mappa_lati.insert({{key_j1, key_j}, id_lato});
+            s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
+            id_lato++;
+        }
+    }
 
-			   
+    // Chiudo il ciclo con il lato tra primo e ultimo punto sul bordo
+
+	auto key_j = to_array(points[0].normalized());
+	auto key_j1 = to_array(points[6 * b - 1].normalized());
+	if (mappa_lati.find({key_j, key_j1}) == mappa_lati.end() &&
+		mappa_lati.find({key_j1, key_j}) == mappa_lati.end()) 
+	{
+		mappa_lati.insert({{key_j, key_j1}, id_lato});
+		mappa_lati.insert({{key_j1, key_j}, id_lato});
+		s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
+		id_lato++;
+	}
+	for(int j = 0; j < points.size() - 6 * b; j++) {
+		double d_max = (points[0]-points[6*b]).norm();
+		auto key_j = to_array(points[6 * b + j].normalized());
+		for(int k = 0; k < points.size(); k++){
+			if(k != 6 * b + j) {
+				double d = (points[6*b+j] - points[k]).norm();
+				if(d <= d_max) {
+					auto key_j1 = to_array(points[k].normalized());
+					if (mappa_lati.find({key_j, key_j1}) == mappa_lati.end() &&
+						mappa_lati.find({key_j1, key_j}) == mappa_lati.end()) 
+					{
+						mappa_lati.insert({{key_j1, key_j}, id_lato});
+						mappa_lati.insert({{key_j, key_j1}, id_lato});
+						s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
+						id_lato++;
+					}
+				}
+			}
+		}
+		
+	}
+    return true;
+}
