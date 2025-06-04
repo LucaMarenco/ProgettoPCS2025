@@ -95,6 +95,7 @@ using namespace std;
 using namespace Eigen;
 
 
+
 int main(int argc, char *argv[])
 {
 	if (argc == 5 || argc ==7 ){
@@ -252,13 +253,12 @@ int main(int argc, char *argv[])
 			iCell0DsCoordinates[id] = coords;
 		}
 		
-        
+        int F_s_g = 0;
+		int V_s_g = 0;
+		int L_s_g = 0;
+		MatrixXd Cell0DsCoordinates;
+		MatrixXi Cell1DsExtrema;
 		if (p == 3) {
-			int F_s_g;
-			int V_s_g;
-			int L_s_g;
-			MatrixXd Cell0DsCoordinates;
-			MatrixXi Cell1DsExtrema;
 			if (b >= 1 && c == 0 ){
 				int T = b * b + b * c + c * c; 
 				ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
@@ -271,9 +271,9 @@ int main(int argc, char *argv[])
 				s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
 				if (q == 3) {
 					int F = 4;
-					int F_s_g = 4 * T;
-					int V_s_g = 2 * T + 2;
-					int L_s_g = 6 * T;
+					F_s_g = 4 * T;
+					V_s_g = 2 * T + 2;
+					L_s_g = 6 * T;
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
@@ -329,9 +329,9 @@ int main(int argc, char *argv[])
 				
 				else if(q == 4){
 					int F = 8;
-					int F_s_g = 8 * T;
-					int V_s_g = 4 * T + 2;
-					int L_s_g = 12 * T;
+					F_s_g = 8 * T;
+					V_s_g = 4 * T + 2;
+					L_s_g = 12 * T;
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
@@ -454,9 +454,9 @@ int main(int argc, char *argv[])
 				s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
 				if (q == 3) {
 					int F = 4;
-					int F_s_g = 4 * (3 * b * b + 3 * b);
-					int V_s_g = 4 + 6 * (2 * b - 1) + 4 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
-					int L_s_g = 6 * (2 * b) + 4 * (9 * b * b / 2.0 + 3 * b / 2.0);
+					F_s_g = 4 * (3 * b * b + 3 * b);
+					V_s_g = 4 + 6 * (2 * b - 1) + 4 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
+					L_s_g = 6 * (2 * b) + 4 * (9 * b * b / 2.0 + 3 * b / 2.0);
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
@@ -488,85 +488,104 @@ int main(int argc, char *argv[])
 					} 
 				}
 			}
-			Gedim::UCDUtilities utilities;
-			{
-				//vector<Gedim::UCDProperty<double>> cell0Ds_properties(1);
-				//cell0Ds_properties[0].NumComponents = 1;
-				//vector<double> cell0Ds_marker(mesh.NumCell0Ds, 0.0);
-
-				utilities.ExportPoints("./Cell0Ds.inp",
-									   Cell0DsCoordinates);
-
-			}
-
-			{
-
-				//vector<Gedim::UCDProperty<double>> cell1Ds_properties(1);
-				//cell1Ds_properties[0].NumComponents = 1;
-				//vector<double> cell1Ds_marker(mesh.NumCell1Ds, 0.0);
-
-				utilities.ExportSegments("./Cell1Ds.inp",
-										 Cell0DsCoordinates,
-										 Cell1DsExtrema,
-										 {});
-				utilities.ExportSegments("./Cell1Ds.inp",
-										 Cell0DsCoordinates,
-										 Cell1DsExtrema,
-										 {});
-			}
-			
-			{
-				//vector<Gedim::UCDProperty<double>> cell1Ds_properties(1);
-				//cell1Ds_properties[0].NumComponents = 1;
-				//vector<double> cell1Ds_marker(mesh.NumCell1Ds, 0.0);
-
-				utilities.ExportSegments("./Cell1Ds.inp",
-										 Cell0DsCoordinates,
-										 Cell1DsExtrema,
-										 {});
-				utilities.ExportSegments("./Cell1Ds.inp",
-										 Cell0DsCoordinates,
-										 Cell1DsExtrema,
-										 {});
-			}
 		}
 		else{
 			cerr << "Input non valido" << endl;
 		}
+	    vector<double> ShortPath_v(V_s_g, 0.0);
+		vector<double> ShortPath_l(L_s_g, 0.0);
+		if (argc == 7){
+			int start = stoi(argv[5]);
+			int end = stoi(argv[6]);
+			// Controllo validità input
+			if (start < 0 || start >= V_s_g){
+				cerr << "ERRORE: id del vertice di partenza fuori dal range: [" << 0 << ", " << V_s_g -1 << "]" << endl;
+				return 1;
+			}
+			if (end < 0 || end >= V_s_g){
+				cerr << "ERRORE: id del vertice di arrivo fuori dal range: [" << 0 << ", " << V_s_g -1 << "]" << endl;
+				return 1;
+			}
+			vector<vector<int>> lista_ad(V_s_g);
+			vector<vector<double>> pesi(V_s_g);
+
+			// Costruzione lista di adiacenza
+			for (int i = 0; i < L_s_g; ++i) {  // Entrambi i versi perchè non orientato
+				int from = Cell1DsExtrema(0, i);
+				int to   = Cell1DsExtrema(1, i);
+				Vector3d p_from = Cell0DsCoordinates.col(from);
+				Vector3d p_to = Cell0DsCoordinates.col(to);
+				
+				double peso = (p_from - p_to).norm();
+				
+				lista_ad[from].push_back(to);
+				lista_ad[to].push_back(from);
+				pesi[from].push_back(peso);
+				pesi[to].push_back(peso);
+			}
 			
+			//vector<int> cammino_min  = bfs_cammino_min(lista_ad, start, end);
+			vector<int> cammino_min = dijkstra(V_s_g, lista_ad, pesi, start, end) ;
+			cout << "Il cammino minimo è: ";
+			for (size_t k = 0; k < cammino_min.size(); k++){
+				cout << cammino_min[k] << " ";
+				ShortPath_v[cammino_min[k]] = 1.0;
+			}
+			cout << endl;
+
+			for (size_t i = 0; i < cammino_min.size() -1 ; ++i) {
+				int u = cammino_min[i];
+				int v = cammino_min[i + 1];
+
+				for (int j = 0; j < Cell1DsExtrema.cols(); ++j) {
+					int from = Cell1DsExtrema(0, j);
+					int to   = Cell1DsExtrema(1, j);
+
+					if ((from == u && to == v) || (from == v && to == u)) {
+						ShortPath_l[j] = 1.0;
+						break;
+					}
+				}
+			}
+					
+		}
+		
+		Gedim::UCDUtilities utilities;
+		{
+			
+			vector<Gedim::UCDProperty<double>> cell0Ds_properties(1);
+
+			cell0Ds_properties[0].Label = "Marker";
+			cell0Ds_properties[0].UnitLabel = "-";
+			cell0Ds_properties[0].NumComponents = 1;
+			
+			cell0Ds_properties[0].Data = ShortPath_v.data();
+
+				
+			utilities.ExportPoints("./Cell0Ds.inp",
+								   Cell0DsCoordinates,
+								   cell0Ds_properties);
+
+		}
+
+		{
+
+			vector<Gedim::UCDProperty<double>> cell1Ds_properties(1);
+			
+			cell1Ds_properties[0].Label = "Marker";
+			cell1Ds_properties[0].UnitLabel = "-";
+			cell1Ds_properties[0].NumComponents = 1;
+
+			cell1Ds_properties[0].Data = ShortPath_l.data();
+				
+			utilities.ExportSegments("./Cell1Ds.inp",
+									 Cell0DsCoordinates,
+									 Cell1DsExtrema,
+									 {},
+									 cell1Ds_properties);
+		}
 	}
 	else {
 		cerr << "Input non valido" << endl;
 	}
 }
-
-
-
-
-/*funzione che ci permette di trasformare le mappe in vettori/matrici, come richiesto per ucd
-
-void ConvertMapToExportData(const std::map<std::array<int, 3>, int>& input_map,
-                            Eigen::MatrixXd& points){
-
-		std::map<std::array<int, 3>, int> mappa_vertici;
-
-		const int num_points = mappa_vertici.size();
-		Eigen::MatrixXd points(3, num_points);
-
-
-		int i = 0;
-		for (const auto& [coord, id] : mappa_vertici) {
-			points(i, 0) = static_cast<double>(coord[0]);
-			points(i, 1) = static_cast<double>(coord[1]);
-			points(i, 2) = static_cast<double>(coord[2]);
-			
-
-			// Puoi aggiungere qui eventuali proprietà se ne hai
-			++i;
-		}
-	}
-
-// Chiamata finale
-ucdUtilities.ExportPoints("output.ucd", points, properties, materials);
-
-*/

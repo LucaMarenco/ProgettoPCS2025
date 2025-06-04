@@ -8,6 +8,8 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <optional>
+#include <queue>
+#include <climits>
 
 using namespace std;
 using namespace Eigen;
@@ -411,4 +413,47 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
 		
 	}
     return true;
+}
+
+
+using P = pair<double, int>;
+
+vector<int> dijkstra(int n, vector<vector<int>> &adiac_nodi, vector<vector<double>> &adiac_pesi, int start, int end) {
+    vector<double> dist(n, numeric_limits<double>::infinity());
+    vector<int> pred(n, -1);
+    priority_queue<P, vector<P>, greater<>> pq;
+
+    dist[start] = 0.0;
+    pq.emplace(0.0, start);
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+
+        if (d > dist[u]) continue;
+
+        for (size_t i = 0; i < adiac_nodi[u].size(); ++i) {
+            int v = adiac_nodi[u][i];
+            double w = adiac_pesi[u][i];
+
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pred[v] = u;
+                pq.emplace(dist[v], v);
+            }
+        }
+    }
+
+    // Ricostruzione cammino
+    vector<int> path;
+    if (dist[end] == numeric_limits<double>::infinity()) {
+        return path; // Nessun cammino
+    }
+
+    for (int v = end; v != -1; v = pred[v]) {
+        path.push_back(v);
+    }
+
+    reverse(path.begin(), path.end());
+    return path;
 }

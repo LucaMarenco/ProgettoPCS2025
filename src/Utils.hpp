@@ -68,3 +68,5 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
 vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C, int b);
 
 vector<Vector3d> trova_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti);
+
+vector<int> dijkstra(int n, vector<vector<int>> &adiac_nodi, vector<vector<double>> &adiac_pesi, int start, int end) ;
