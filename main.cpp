@@ -524,7 +524,6 @@ int main(int argc, char *argv[])
 				pesi[to].push_back(peso);
 			}
 			
-			//vector<int> cammino_min  = bfs_cammino_min(lista_ad, start, end);
 			vector<int> cammino_min = dijkstra(V_s_g, lista_ad, pesi, start, end) ;
 			cout << "Il cammino minimo è: ";
 			for (size_t k = 0; k < cammino_min.size(); k++){
