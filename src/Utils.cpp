@@ -10,6 +10,8 @@
 #include <optional>
 #include <queue>
 #include <climits>
+#include <set>
+#include <algorithm>
 
 using namespace std;
 using namespace Eigen;
@@ -339,27 +341,53 @@ vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C,
 }
 
 vector<Vector3d> trova_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti) {
-    // Vettore di coppie (distanza, punto)
-    vector<pair<double, Vector3d>> distanze;
+    vector<pair<double, size_t>> distanze_con_indice;
 
-    for (const auto& p : punti) {
-        if ((p - punto).norm() > 1e-12) { // Escludi il punto stesso
-            double distanza = (p - punto).norm();
-            distanze.emplace_back(distanza, p);
+    for (size_t i = 0; i < punti.size(); ++i) {
+        if ((punti[i] - punto).norm() > 1e-12) {
+            double distanza = (punti[i] - punto).norm();
+            distanze_con_indice.emplace_back(distanza, i);
         }
     }
 
-    // Ordina per distanza crescente
-    sort(distanze.begin(), distanze.end(),
-         [](const auto& a, const auto& b) { return a.first < b.first; });
+    sort(distanze_con_indice.begin(), distanze_con_indice.end());
 
-    // Prendi i primi 6 più vicini
-    vector<Vector3d> punti_vicini;
-    for (size_t i = 0; i < min(size_t(6), distanze.size()); ++i) {
-        punti_vicini.push_back(distanze[i].second);
+    // Prendi indici dei 6 punti più vicini
+    vector<size_t> vicini_indici;
+    for (size_t i = 0; i < min(size_t(6), distanze_con_indice.size()); ++i) {
+        vicini_indici.push_back(distanze_con_indice[i].second);
     }
 
-    return punti_vicini;
+    // Ordina i 6 punti in modo tale che ogni punto sia il più vicino possibile al precedente
+    vector<Vector3d> ordinati;
+    set<size_t> usati;
+
+    // Parto dal primo
+    size_t attuale = vicini_indici[0];
+    ordinati.push_back(punti[attuale]);
+    usati.insert(attuale);
+
+    for (int step = 1; step < vicini_indici.size(); ++step) {
+        double min_d = numeric_limits<double>::max();
+        size_t prossimo = -1;
+
+        for (size_t idx : vicini_indici) {
+            if (usati.count(idx)) continue;
+            double d = (punti[attuale] - punti[idx]).norm();
+            if (d < min_d) {
+                min_d = d;
+                prossimo = idx;
+            }
+        }
+
+        if (prossimo != size_t(-1)) {
+            ordinati.push_back(punti[prossimo]);
+            usati.insert(prossimo);
+            attuale = prossimo;
+        }
+    }
+
+    return ordinati;
 }
 
 
@@ -415,7 +443,6 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
     return true;
 }
 
-
 using P = pair<double, int>;
 
 vector<int> dijkstra(int n, vector<vector<int>> &adiac_nodi, vector<vector<double>> &adiac_pesi, int start, int end) {
@@ -456,4 +483,51 @@ vector<int> dijkstra(int n, vector<vector<int>> &adiac_nodi, vector<vector<doubl
 
     reverse(path.begin(), path.end());
     return path;
+}
+
+bool file_facce_II(const vector<Vector3d>& punti_unici,
+				map<array<array<int, 3>, 3>, int>& mappa_facce,
+				map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
+			    map<array<int,3> , int>& mappa_vertici,
+				int& id_faccia,
+				int& b,
+				ofstream& s_g_Cell2Ds) {	
+	for(int i = 0; i < punti_unici.size() - 6*b; i++) {
+		vector<Vector3d> vicini = trova_punti_vicini(punti_unici[i + 6*b], punti_unici);
+		auto key_j = to_array(punti_unici[6*b + i].normalized());
+		for(int j = 0; j < vicini.size() - 1; j++) {
+			auto key_j1 = to_array(vicini[j].normalized());
+			auto key_j2 = to_array(vicini[j + 1].normalized());
+			if(mappa_facce.find({key_j, key_j1,key_j2}) == mappa_facce.end() && mappa_facce.find({key_j, key_j2,key_j1}) == mappa_facce.end() &&
+				mappa_facce.find({key_j1, key_j,key_j2}) == mappa_facce.end() && mappa_facce.find({key_j1, key_j2,key_j}) == mappa_facce.end() &&
+				mappa_facce.find({key_j2, key_j1,key_j}) == mappa_facce.end() && mappa_facce.find({key_j2, key_j,key_j1}) == mappa_facce.end())	{
+				mappa_facce.insert({{key_j,key_j1,key_j2},id_faccia});
+				mappa_facce.insert({{key_j,key_j2,key_j1},id_faccia});
+				mappa_facce.insert({{key_j1,key_j2,key_j},id_faccia});
+				mappa_facce.insert({{key_j1,key_j,key_j2},id_faccia});
+				mappa_facce.insert({{key_j2,key_j1,key_j},id_faccia});
+				mappa_facce.insert({{key_j2,key_j,key_j1},id_faccia});
+				s_g_Cell2Ds << id_faccia << " 3 " << "3 " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1] << " "<<
+				mappa_vertici[key_j2]<<" "<< mappa_lati[{key_j,key_j1}]<<" "<<mappa_lati[{key_j1,key_j2}]<<" "<<mappa_lati[{key_j2,key_j}]<<"\n";
+				id_faccia++;
+			}
+		}
+		auto key_j1 = to_array(vicini[0].normalized());
+		auto key_j2 = to_array(vicini[5].normalized());
+		if(mappa_facce.find({key_j, key_j1,key_j2}) == mappa_facce.end() && mappa_facce.find({key_j, key_j2,key_j1}) == mappa_facce.end() &&
+			mappa_facce.find({key_j1, key_j,key_j2}) == mappa_facce.end() && mappa_facce.find({key_j1, key_j2,key_j}) == mappa_facce.end() &&
+			mappa_facce.find({key_j2, key_j1,key_j}) == mappa_facce.end() && mappa_facce.find({key_j2, key_j,key_j1}) == mappa_facce.end())	{
+			mappa_facce.insert({{key_j,key_j1,key_j2},id_faccia});
+			mappa_facce.insert({{key_j,key_j2,key_j1},id_faccia});
+			mappa_facce.insert({{key_j1,key_j2,key_j},id_faccia});
+			mappa_facce.insert({{key_j1,key_j,key_j2},id_faccia});
+			mappa_facce.insert({{key_j2,key_j1,key_j},id_faccia});
+			mappa_facce.insert({{key_j2,key_j,key_j1},id_faccia});
+			s_g_Cell2Ds << id_faccia << " 3 " << "3 " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1] << " "<<
+			mappa_vertici[key_j2]<<" "<< mappa_lati[{key_j,key_j1}]<<" "<<mappa_lati[{key_j1,key_j2}]<<" "<<mappa_lati[{key_j2,key_j}]<<"\n";
+			id_faccia++;
+		}
+	}
+
+	return true;
 }

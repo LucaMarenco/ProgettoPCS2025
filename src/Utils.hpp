@@ -70,3 +70,11 @@ vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C,
 vector<Vector3d> trova_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti);
 
 vector<int> dijkstra(int n, vector<vector<int>> &adiac_nodi, vector<vector<double>> &adiac_pesi, int start, int end) ;
+
+bool file_facce_II(const vector<Vector3d>& punti_unici,
+				map<array<array<int, 3>, 3>, int>& mappa_facce,
+				map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
+			        map<array<int,3> , int>& mappa_vertici,
+				int& id_faccia,
+				int& b,
+				ofstream& s_g_Cell2Ds);
