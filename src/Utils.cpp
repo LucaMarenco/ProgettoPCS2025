@@ -47,6 +47,7 @@ bool file_vertici(const vector<Vector3d>& points,
 	return true;
 }
 
+
 bool file_lati(const vector<Vector3d>& points, 
 			   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
 			   map<array<int,3> , int>& mappa_vertici,
@@ -321,20 +322,46 @@ vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C,
 			d_inclinato_2++;
 		}		
 	}
-	map<array<int,3> , int> mappa_vertici;
 	vector<Vector3d> punti_unici;
+	map<array<int,3> , int> mappa_vertici;
 	int id_vertice = 0;
 	for(int z = 0; z < points.size(); z++) {
 		array<int,3> key = to_array(points[z]);    
 		if (mappa_vertici.find(key) == mappa_vertici.end()) {
 			mappa_vertici[key] = id_vertice;
-			punti_unici.push_back(points[z]);				// assegna nuovo ID a vertice se non esiste						
+			punti_unici.push_back(points[z]);									
+			id_vertice++;
 		}
 	}
 	return punti_unici;
 }
 
-bool file_lati_II(const vector<Vector3d>& points, 
+vector<Vector3d> trova_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti) {
+    // Vettore di coppie (distanza, punto)
+    vector<pair<double, Vector3d>> distanze;
+
+    for (const auto& p : punti) {
+        if ((p - punto).norm() > 1e-12) { // Escludi il punto stesso
+            double distanza = (p - punto).norm();
+            distanze.emplace_back(distanza, p);
+        }
+    }
+
+    // Ordina per distanza crescente
+    sort(distanze.begin(), distanze.end(),
+         [](const auto& a, const auto& b) { return a.first < b.first; });
+
+    // Prendi i primi 6 più vicini
+    vector<Vector3d> punti_vicini;
+    for (size_t i = 0; i < min(size_t(6), distanze.size()); ++i) {
+        punti_vicini.push_back(distanze[i].second);
+    }
+
+    return punti_vicini;
+}
+
+
+bool file_lati_II(const vector<Vector3d>& punti_unici, 
                  map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
                  map<array<int,3>, int>& mappa_vertici,
                  int& id_lato,
@@ -343,8 +370,8 @@ bool file_lati_II(const vector<Vector3d>& points,
 {
     // Lati sul bordo della faccia
     for (int i = 0; i < 6 * b - 1; i++) {
-        auto key_j = to_array(points[i].normalized());
-        auto key_j1 = to_array(points[i + 1].normalized());
+        auto key_j = to_array(punti_unici[i].normalized());
+        auto key_j1 = to_array(punti_unici[i + 1].normalized());
         if (mappa_lati.find({key_j, key_j1}) == mappa_lati.end() &&
             mappa_lati.find({key_j1, key_j}) == mappa_lati.end()) 
         {
@@ -357,8 +384,8 @@ bool file_lati_II(const vector<Vector3d>& points,
 
     // Chiudo il ciclo con il lato tra primo e ultimo punto sul bordo
 
-	auto key_j = to_array(points[0].normalized());
-	auto key_j1 = to_array(points[6 * b - 1].normalized());
+	auto key_j = to_array(punti_unici[0].normalized());
+	auto key_j1 = to_array(punti_unici[6 * b - 1].normalized());
 	if (mappa_lati.find({key_j, key_j1}) == mappa_lati.end() &&
 		mappa_lati.find({key_j1, key_j}) == mappa_lati.end()) 
 	{
@@ -367,23 +394,18 @@ bool file_lati_II(const vector<Vector3d>& points,
 		s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
 		id_lato++;
 	}
-	for(int j = 0; j < points.size() - 6 * b; j++) {
-		double d_max = (points[0]-points[6*b]).norm();
-		auto key_j = to_array(points[6 * b + j].normalized());
-		for(int k = 0; k < points.size(); k++){
-			if(k != 6 * b + j) {
-				double d = (points[6*b+j] - points[k]).norm();
-				if(d <= d_max) {
-					auto key_j1 = to_array(points[k].normalized());
-					if (mappa_lati.find({key_j, key_j1}) == mappa_lati.end() &&
-						mappa_lati.find({key_j1, key_j}) == mappa_lati.end()) 
-					{
-						mappa_lati.insert({{key_j1, key_j}, id_lato});
-						mappa_lati.insert({{key_j, key_j1}, id_lato});
-						s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
-						id_lato++;
-					}
-				}
+	for(int j = 0; j < punti_unici.size() - 6 * b; j++) {
+		vector<Vector3d> vicini = trova_punti_vicini(punti_unici[j + 6*b], punti_unici);
+		auto key_j = to_array(punti_unici[6 * b + j].normalized());
+		for(int k = 0; k < vicini.size(); k++){
+			auto key_j1 = to_array(vicini[k].normalized());
+			if (mappa_lati.find({key_j, key_j1}) == mappa_lati.end() &&
+				mappa_lati.find({key_j1, key_j}) == mappa_lati.end()) 
+			{
+				mappa_lati.insert({{key_j1, key_j}, id_lato});
+				mappa_lati.insert({{key_j, key_j1}, id_lato});
+				s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
+				id_lato++;
 			}
 		}
 		

@@ -79,7 +79,6 @@ Dati in input p,q,b,c bisogna innanzitutto, perché sia un solido geodetico, ave
 Faccio una funzione void (perché non ritorna niente) che, dati in input i 4 interi p,q,b e c,
 crea 4 file txt che rappresentano il poliedro geodetico che si ottiene a partire da un certo solido platonico:
 */
-
 #include <iostream>
 #include <fstream>
 #include <map>
@@ -438,7 +437,7 @@ int main(int argc, char *argv[])
 					};
 					
 					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);		
+					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
 				
 				}							
 			}
@@ -456,12 +455,12 @@ int main(int argc, char *argv[])
 				if (q == 3) {
 					int F = 4;
 					int F_s_g = 4 * (3 * b * b + 3 * b);
-					int V_s_g = 4 + 6 * (2 * b - 1) + 4 * (3 * b * b / 2 - 3 * b / 2 + 1);
-					int L_s_g = 6 * (2 * b) + 4 * (9 * b * b / 2 + 3 * b / 2);
+					int V_s_g = 4 + 6 * (2 * b - 1) + 4 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
+					int L_s_g = 6 * (2 * b) + 4 * (9 * b * b / 2.0 + 3 * b / 2.0);
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<int,3> , int> mappa_vertici;    
+					map<array<int,3> , int> mappa_vertici;
 					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
 					map<int, pair<Vector3i, Vector3i>> mappa_facce;
 					for(int i = 0; i < F; i++) {
@@ -472,14 +471,14 @@ int main(int argc, char *argv[])
 						Vector3d B = tCell0DsCoordinates[id_B];
 						Vector3d C = tCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
-						vector<Vector3d> punti_n_n = punti_triangolazione_II_n_n(A,B,C,b);
+						vector<Vector3d> punti_n_n = punti_triangolazione_II_n_n(A, B, C, b);
 						if(!file_vertici_II(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
 
-						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if (!file_lati_II(punti_n_n, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -510,9 +509,26 @@ int main(int argc, char *argv[])
 										 Cell0DsCoordinates,
 										 Cell1DsExtrema,
 										 {});
+				utilities.ExportSegments("./Cell1Ds.inp",
+										 Cell0DsCoordinates,
+										 Cell1DsExtrema,
+										 {});
 			}
 			
-			
+			{
+				//vector<Gedim::UCDProperty<double>> cell1Ds_properties(1);
+				//cell1Ds_properties[0].NumComponents = 1;
+				//vector<double> cell1Ds_marker(mesh.NumCell1Ds, 0.0);
+
+				utilities.ExportSegments("./Cell1Ds.inp",
+										 Cell0DsCoordinates,
+										 Cell1DsExtrema,
+										 {});
+				utilities.ExportSegments("./Cell1Ds.inp",
+										 Cell0DsCoordinates,
+										 Cell1DsExtrema,
+										 {});
+			}
 		}
 		else{
 			cerr << "Input non valido" << endl;

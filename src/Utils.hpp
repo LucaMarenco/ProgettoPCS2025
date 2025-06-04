@@ -58,7 +58,7 @@ bool file_vertici_II(const vector<Vector3d>& points,
 				  int& id_vertice, 
 				  ofstream& s_g_Cell0Ds);
 
-bool file_lati_II(const vector<Vector3d>& points,
+bool file_lati_II(const vector<Vector3d>& punti_unici,
                   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
                   map<array<int,3> , int>& mappa_vertici,
                   int& id_lato,
@@ -66,3 +66,5 @@ bool file_lati_II(const vector<Vector3d>& points,
                   ofstream& s_g_Cell1Ds);
 
 vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C, int b);
+
+vector<Vector3d> trova_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti);
