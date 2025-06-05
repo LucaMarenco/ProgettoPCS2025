@@ -200,39 +200,37 @@ optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vect
 }
 
 vector<Vector3d> punti_lungo_i_lati(int b, Vector3d A, Vector3d B, Vector3d C) { // Per prendere i punti che si vanno a formare
-	vector<Vector3d> points;                                                     // lungo i lati della faccia che ho triangolato
-	double lunghezza_lato = (B - A).norm();                              
+	vector<Vector3d> points;                                                     // lungo i lati della faccia che ho triangolato                              
 	points.push_back(A);
-	double suddivisione = lunghezza_lato / (2 * b);
+	double frequenza = 2 * b;
 	for (int i = 1; i < 2 * b; i++) {
-		points.push_back(((suddivisione * i) * (B - A) / lunghezza_lato) + A);
+		points.push_back(A * (1 - i / (double)frequenza) + B * (i / (double)frequenza));
 	}
 	points.push_back(B);
 	for (int i = 1; i < 2 * b; i++) {
-		points.push_back(((suddivisione * i) * (C - B) / lunghezza_lato) + B);
+		points.push_back(B * (1 - i / (double)frequenza) + C * (i / (double)frequenza));
 	}
 	points.push_back(C);
 	for (int i = 1; i < 2 * b; i++) {
-		points.push_back(((suddivisione * i) * (A - C) / lunghezza_lato) + C);
+		points.push_back(C * (1 - i / (double)frequenza) + A * (i / (double)frequenza));
 	}
 	return points;
 } 
 
 vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, Vector3d A, Vector3d B, Vector3d C) {
 	vector<Vector3d> punti_l_l;
-	double lunghezza_lato = (B - A).norm();
 	punti_l_l.push_back(A);
-	double suddivisione = lunghezza_lato / (2 * b);
+	double frequenza = 2 * b;
 	for (int i = 1; i < 2 * b; i++) {
-		punti_l_l.push_back(((suddivisione * i * (B - A) / lunghezza_lato) + A).normalized());
+		punti_l_l.push_back((A * (1 - i / (double)frequenza) + B * (i / (double)frequenza)).normalized());
 	}
 	punti_l_l.push_back(B);
 	for (int i = 1; i < 2 * b; i++) {
-	punti_l_l.push_back(((suddivisione * i * (C - B) / lunghezza_lato) + B).normalized());
+		punti_l_l.push_back((B * (1 - i / (double)frequenza) + C * (i / (double)frequenza)).normalized());
 	}
 	punti_l_l.push_back(C);
 	for (int i = 1; i < 2 * b; i++) {
-		punti_l_l.push_back(((suddivisione * i * (A - C) / lunghezza_lato) + C).normalized());
+		punti_l_l.push_back((C * (1 - i / (double)frequenza) + A * (i / (double)frequenza)).normalized());
 	}
 	return punti_l_l;
 } 

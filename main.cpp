@@ -425,9 +425,9 @@ int main(int argc, char *argv[])
 				}
 				else if (q == 4) {
 					int F = 8;
-					int F_s_g = 8 * (3 * b * b + 3 * b);
-					int V_s_g = 6 + 12 * (2 * b - 1) + 8 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
-					int L_s_g = 12 * (2 * b) + 8 * (9 * b * b / 2.0 + 3 * b / 2.0);
+					F_s_g = 8 * (3 * b * b + 3 * b);
+					V_s_g = 6 + 12 * (2 * b - 1) + 8 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
+					L_s_g = 12 * (2 * b) + 8 * (9 * b * b / 2.0 + 3 * b / 2.0);
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
@@ -471,9 +471,9 @@ int main(int argc, char *argv[])
 				}
 				else if (q == 5) {
 					int F = 20;
-					int F_s_g = 20 * (3 * b * b + 3 * b);
-					int V_s_g = 12 + 30 * (2 * b - 1) + 20 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
-					int L_s_g = 30 * (2 * b) + 20 * (9 * b * b / 2.0 + 3 * b / 2.0);
+					F_s_g = 20 * (3 * b * b + 3 * b);
+					V_s_g = 12 + 30 * (2 * b - 1) + 20 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
+					L_s_g = 30 * (2 * b) + 20 * (9 * b * b / 2.0 + 3 * b / 2.0);
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
