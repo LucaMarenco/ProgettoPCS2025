@@ -529,3 +529,27 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 
 	return true;
 }
+
+bool file_vertici_duale(int F_s_g, ) {
+	vector<Vector3d> baricentri(F_s_g);
+	double eps = 1e-3;
+	for(int i = 0; i < F_s_g; i++) {
+		Vector3d id_vertici_faccia = mappa_facce[i].first();
+		for (const auto& [key, valore] : mappa_vertici) {
+			if(key == id_vertici_faccia[0]) {
+				Vector3d A(valore[0]*eps, valore[1]*eps, valore[2]*eps);
+			}
+			if(key == id_vertici_faccia[1]) {
+				Vector3d B(valore[0]*eps, valore[1]*eps, valore[2]*eps);
+			}
+			if(key == id_vertici_faccia[2]) {
+				Vector3d C(valore[0]*eps, valore[1]*eps, valore[2]*eps);
+			}	
+		}
+		Vector3d baricentro = punti_triangolazione_II(A, B, C, 1).end();
+		baricentri[i] = baricentro;
+	}
+	for(int j = 0; j < baricentri.size(); j++) {
+		s_g_Cell0Ds << j << " " << baricentro[0] << " " << baricentro[1] << " " baricentro[2] << "\n";
+	}
+}
