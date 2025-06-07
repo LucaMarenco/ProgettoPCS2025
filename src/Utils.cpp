@@ -21,7 +21,7 @@ array<int,3> to_array(const Vector3d& v){
 	return {static_cast<int>(v[0]/eps), static_cast<int>(v[1]/eps), static_cast<int>(v[2]/eps)};
 }
 	
-vector<Vector3d> punti_triangolazione (Vector3d A, Vector3d B, Vector3d C, int b) {
+vector<Vector3d> punti_triangolazione(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b) {
 	vector<Vector3d> points;
 	for (int k = 0; k <= b; k++) {
 		for (int j = 0; j <= b - k; j++) {
@@ -172,7 +172,7 @@ MatrixXi Cell1DsConverter(int L_s_g, map<array<int,3> , int> mappa_vertici, map<
 
 
 
-optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vector3d D)  
+optional<Vector3d> calcola_intersezione(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D)  
 {
     Vector3d dir1 = B - A;  // Vettore AB
     Vector3d dir2 = D - C;  // Vettore CD
@@ -197,7 +197,7 @@ optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vect
     return punto_intersezione; // Intersezione tra AB e CD
 }
 
-vector<Vector3d> punti_lungo_i_lati(int b, Vector3d A, Vector3d B, Vector3d C) { // Per prendere i punti che si vanno a formare
+vector<Vector3d> punti_lungo_i_lati(int b, const Vector3d& A, const Vector3d& B, const Vector3d& C) { // Per prendere i punti che si vanno a formare
 	vector<Vector3d> points;                                                     // lungo i lati della faccia che ho triangolato                              
 	points.push_back(A);
 	double frequenza = 2 * b;
@@ -215,7 +215,7 @@ vector<Vector3d> punti_lungo_i_lati(int b, Vector3d A, Vector3d B, Vector3d C) {
 	return points;
 } 
 
-vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, Vector3d A, Vector3d B, Vector3d C) {
+vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, const Vector3d& A, const Vector3d& B, const Vector3d& C) {
 	vector<Vector3d> punti_l_l;
 	punti_l_l.push_back(A);
 	double frequenza = 2 * b;
@@ -234,7 +234,7 @@ vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, Vector3d A, Vector3d B, 
 } 
 
 					
-vector<Vector3d> punti_triangolazione_II(Vector3d A, Vector3d B, Vector3d C, int b) {
+vector<Vector3d> punti_triangolazione_II(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b) {
 	vector<Vector3d> points = punti_lungo_i_lati_normalizzati(b, A, B, C); // Punti lungo i lati della faccia già proiettati sulla sfera
 	vector<Vector3d> punti_lungo_lato = punti_lungo_i_lati(b, A, B, C);
 	vector<pair<Vector3d, Vector3d>> verticali; // Coppie di estremi che formano i lati verticali
@@ -273,7 +273,7 @@ vector<Vector3d> punti_triangolazione_II(Vector3d A, Vector3d B, Vector3d C, int
 
 // Questa triangolazione non è normalizzata e non contiene duplicati
 
-vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C, int b) {
+vector<Vector3d> punti_triangolazione_II_n_n(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b) {
 	vector<Vector3d> points = punti_lungo_i_lati(b, A, B, C); // Punti lungo i lati della faccia già proiettati sulla sfera
 	vector<Vector3d> punti_lungo_lato = punti_lungo_i_lati(b, A, B, C);
 	vector<pair<Vector3d, Vector3d>> verticali; // Coppie di estremi che formano i lati verticali
@@ -425,7 +425,7 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
 
 using P = pair<double, int>;
 
-vector<int> dijkstra(int n, vector<vector<int>> &adiac_nodi, vector<vector<double>> &adiac_pesi, int start, int end) {
+vector<int> dijkstra(int n, vector<vector<int>>& adiac_nodi, vector<vector<double>>& adiac_pesi, int start, int end) {
     vector<double> dist(n, numeric_limits<double>::infinity());
     vector<int> pred(n, -1);
     priority_queue<P, vector<P>, greater<>> pq;

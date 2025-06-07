@@ -14,7 +14,7 @@ using namespace Eigen;
 
 array<int,3> to_array(const Vector3d& v);
 
-vector<Vector3d> punti_triangolazione(Vector3d A, Vector3d B, Vector3d C, int b);
+vector<Vector3d> punti_triangolazione(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b);
 
 bool file_vertici(const vector<Vector3d>& points, 
 				  map<array<int,3> , int>& mappa_vertici, 
@@ -44,18 +44,13 @@ MatrixXd Cell0DsConverter(int V_s_g, map<array<int,3> , int> mappa_vertici);
 
 MatrixXi Cell1DsConverter(int L_s_g, map<array<int,3> , int> mappa_vertici , map<pair<array<int,3>, array<int,3>>, int> mappa_lati) ;
 
-optional<Vector3d> calcola_intersezione(Vector3d A, Vector3d B, Vector3d C, Vector3d D);
+optional<Vector3d> calcola_intersezione(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D);
 
-vector<Vector3d> punti_lungo_i_lati(int b, Vector3d A, Vector3d B, Vector3d C);
+vector<Vector3d> punti_lungo_i_lati(int b, const Vector3d& A, const Vector3d& B, const Vector3d& C);
 
-vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, Vector3d A, Vector3d B, Vector3d C);
+vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, const Vector3d& A, const Vector3d& B, const Vector3d& C);
 
-vector<Vector3d> punti_triangolazione_II(Vector3d A, Vector3d B, Vector3d C, int b);
-
-bool file_vertici_II(const vector<Vector3d>& points, 
-				  map<array<int,3> , int>& mappa_vertici, 
-				  int& id_vertice, 
-				  ofstream& s_g_Cell0Ds);
+vector<Vector3d> punti_triangolazione_II(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b);
 
 bool file_lati_II(const vector<Vector3d>& punti_unici,
                   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
@@ -64,11 +59,11 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
                   int& b,
                   ofstream& s_g_Cell1Ds);
 
-vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C, int b);
+vector<Vector3d> punti_triangolazione_II_n_n(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b);
 
 vector<Vector3d> trova_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti);
 
-vector<int> dijkstra(int n, vector<vector<int>> &adiac_nodi, vector<vector<double>> &adiac_pesi, int start, int end) ;
+vector<int> dijkstra(int n, vector<vector<int>>& adiac_nodi, vector<vector<double>>& adiac_pesi, int start, int end) ;
 
 bool file_facce_II(const vector<Vector3d>& punti_unici,
 				map<array<array<int, 3>, 3>, int>& mappa_facce,
