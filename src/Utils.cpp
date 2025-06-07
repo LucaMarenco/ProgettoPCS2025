@@ -38,7 +38,7 @@ vector<Vector3d> punti_triangolazione(const Vector3d& A, const Vector3d& B, cons
 bool file_vertici(const vector<Vector3d>& points, 
 				  map<array<int,3> , int>& mappa_vertici, 
 				  int& id_vertice, 
-				  ofstream& s_g_Cell0Ds) {		  
+				  ostream& s_g_Cell0Ds) {		  
 	for(size_t z = 0; z < points.size(); z++) {
 		double eps = 1e-3;
 		array<int,3> key = to_array(points[z]);    
@@ -56,7 +56,7 @@ bool file_lati(const vector<Vector3d>& points,
 			   map<array<int,3> , int>& mappa_vertici,
 			   int& id_lato,
 			   int& b,
-			   ofstream& s_g_Cell1Ds) {				   
+			   ostream& s_g_Cell1Ds) {				   
 	int d = 0;
 	for (int f = 0; f <= b; f++) {   
 		for (int j = d; j < d + b - f; j++) {
@@ -135,7 +135,7 @@ bool file_facce(const vector<Vector3d>& points,
 bool file_poliedro(int& F_s_g,
 				   int& V_s_g,
 				   int& L_s_g,
-				   ofstream& s_g_Cell3Ds) {
+				   ostream& s_g_Cell3Ds) {
 	s_g_Cell3Ds << 0 << " " << V_s_g << " " << L_s_g << " " << F_s_g << " ";
 	for(int i = 0; i < V_s_g; i++) {
 		 s_g_Cell3Ds << i << " ";
@@ -376,7 +376,7 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
                  map<array<int,3>, int>& mappa_vertici,
                  int& id_lato,
                  int& b,
-                 ofstream& s_g_Cell1Ds) 
+                 ostream& s_g_Cell1Ds) 
 {
     // Lati sul bordo della faccia
     for (int i = 0; i < 6 * b - 1; i++) {
@@ -471,7 +471,7 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 			    map<array<int,3> , int>& mappa_vertici,
 				int& id_faccia,
 				int& b,
-				ofstream& s_g_Cell2Ds) {	
+				ostream& s_g_Cell2Ds) {	
 	for(size_t i = 0; i < punti_unici.size() - 6*b; i++) {
 		vector<Vector3d> vicini = trova_punti_vicini(punti_unici[i + 6*b], punti_unici);
 		auto key_j = to_array(punti_unici[6*b + i].normalized());

@@ -19,14 +19,14 @@ vector<Vector3d> punti_triangolazione(const Vector3d& A, const Vector3d& B, cons
 bool file_vertici(const vector<Vector3d>& points, 
 				  map<array<int,3> , int>& mappa_vertici, 
 				  int& id_vertice, 
-				  ofstream& s_g_Cell0Ds);
+				  ostream& s_g_Cell0Ds);
 
 bool file_lati(const vector<Vector3d>& points, 
 			   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
 			   map<array<int,3> , int>& mappa_vertici,
 			   int& id_lato,
 			   int& b,
-			   ofstream& s_g_Cell1Ds);
+			   ostream& s_g_Cell1Ds);
 			   
 bool file_facce(const vector<Vector3d>& points,
 				map<int, pair<Vector3i, Vector3i>>& mappa_facce,
@@ -38,7 +38,7 @@ bool file_facce(const vector<Vector3d>& points,
 bool file_poliedro(int& F_s_g,
 				   int& V_s_g,
 				   int& L_s_g,
-				   ofstream& s_g_Cell3Ds);		   
+				   ostream& s_g_Cell3Ds);		   
 
 MatrixXd Cell0DsConverter(int V_s_g, map<array<int,3> , int> mappa_vertici);
 
@@ -57,7 +57,7 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
                   map<array<int,3> , int>& mappa_vertici,
                   int& id_lato,
                   int& b,
-                  ofstream& s_g_Cell1Ds);
+                  ostream& s_g_Cell1Ds);
 
 vector<Vector3d> punti_triangolazione_II_n_n(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b);
 
@@ -71,4 +71,4 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 			        map<array<int,3> , int>& mappa_vertici,
 				int& id_faccia,
 				int& b,
-				ofstream& s_g_Cell2Ds);
+				ostream& s_g_Cell2Ds);
