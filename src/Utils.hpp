@@ -33,8 +33,7 @@ bool file_facce(const vector<Vector3d>& points,
 				map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
 			    map<array<int,3> , int>& mappa_vertici,
 				int& id_faccia,
-				int& b,
-				ofstream& s_g_Cell2Ds);
+				int& b);
 
 bool file_poliedro(int& F_s_g,
 				   int& V_s_g,

@@ -39,7 +39,7 @@ bool file_vertici(const vector<Vector3d>& points,
 				  map<array<int,3> , int>& mappa_vertici, 
 				  int& id_vertice, 
 				  ofstream& s_g_Cell0Ds) {		  
-	for(int z = 0; z < points.size(); z++) {
+	for(size_t z = 0; z < points.size(); z++) {
 		double eps = 1e-3;
 		array<int,3> key = to_array(points[z]);    
 		if (mappa_vertici.find(key) == mappa_vertici.end()) {
@@ -50,7 +50,6 @@ bool file_vertici(const vector<Vector3d>& points,
 	}
 	return true;
 }
-
 
 bool file_lati(const vector<Vector3d>& points, 
 			   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
@@ -96,8 +95,7 @@ bool file_facce(const vector<Vector3d>& points,
 				map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
 			    map<array<int,3> , int>& mappa_vertici,
 				int& id_faccia,
-				int& b,
-				ofstream& s_g_Cell2Ds) {		
+				int& b) {		
 	Vector3i id_vertici_faccia;
 	Vector3i id_lati_faccia;	
 	int d = 0;
@@ -251,7 +249,7 @@ vector<Vector3d> punti_triangolazione_II(Vector3d A, Vector3d B, Vector3d C, int
 	int d_inclinato_2 = 1;
 	for(int i = 0; i < 6 * b; i++) {
 		if (i % 2 == 0 && i < 2 * b) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sul lato "sinistro"
-			for(int k = 0; k < verticali.size(); k++) {
+			for(size_t k = 0; k < verticali.size(); k++) {
 				auto intersezione = calcola_intersezione(punti_lungo_lato[i], punti_lungo_lato[3 * b - d_inclinato_1], verticali[k].first, verticali[k].second);  		
 				if (intersezione) {
 					points.push_back(intersezione->normalized());
@@ -260,7 +258,7 @@ vector<Vector3d> punti_triangolazione_II(Vector3d A, Vector3d B, Vector3d C, int
 			d_inclinato_1++;
 		}
 		else if (i % 2 == 0 && i > 4 * b) {
-			for(int k = 0; k < verticali.size(); k++) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sulla base
+			for(size_t k = 0; k < verticali.size(); k++) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sulla base
 				auto intersezione = calcola_intersezione(punti_lungo_lato[i], punti_lungo_lato[4 * b - d_inclinato_2], verticali[k].first, verticali[k].second);
 				if (intersezione) {
 					points.push_back(intersezione->normalized());
@@ -272,22 +270,6 @@ vector<Vector3d> punti_triangolazione_II(Vector3d A, Vector3d B, Vector3d C, int
 	return points;
 }
 
-bool file_vertici_II(const vector<Vector3d>& points, 
-				  map<array<int,3> , int>& mappa_vertici, 
-				  int& id_vertice, 
-				  ofstream& s_g_Cell0Ds) {
-					  
-	for(int z = 0; z < points.size(); z++) {
-		double eps = 1e-3;
-		array<int,3> key = to_array(points[z]);    
-		if (mappa_vertici.find(key) == mappa_vertici.end()) {
-			mappa_vertici[key] = id_vertice;
-			s_g_Cell0Ds << id_vertice << " " << key[0]*eps << " " << key[1]*eps << " " << key[2]*eps << "\n";
-			id_vertice++;							// assegna nuovo ID a vertice se non esiste						
-		}
-	}
-	return true;
-}
 
 // Questa triangolazione non è normalizzata e non contiene duplicati
 
@@ -306,7 +288,7 @@ vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C,
 	int d_inclinato_2 = 1;
 	for(int i = 0; i < 6 * b; i++) {
 		if (i % 2 == 0 && i < 2 * b) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sul lato "sinistro"
-			for(int k = 0; k < verticali.size(); k++) {
+			for(size_t k = 0; k < verticali.size(); k++) {
 				auto intersezione = calcola_intersezione(punti_lungo_lato[i], punti_lungo_lato[3 * b - d_inclinato_1], verticali[k].first, verticali[k].second);  		
 				if (intersezione) {
 					points.push_back(*intersezione);
@@ -315,7 +297,7 @@ vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C,
 			d_inclinato_1++;
 		}
 		else if (i % 2 == 0 && i > 4 * b) {
-			for(int k = 0; k < verticali.size(); k++) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sulla base
+			for(size_t k = 0; k < verticali.size(); k++) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sulla base
 				auto intersezione = calcola_intersezione(punti_lungo_lato[i], punti_lungo_lato[4 * b - d_inclinato_2], verticali[k].first, verticali[k].second);
 				if (intersezione) {
 					points.push_back(*intersezione);
@@ -327,7 +309,7 @@ vector<Vector3d> punti_triangolazione_II_n_n(Vector3d A, Vector3d B, Vector3d C,
 	vector<Vector3d> punti_unici;
 	map<array<int,3> , int> mappa_vertici;
 	int id_vertice = 0;
-	for(int z = 0; z < points.size(); z++) {
+	for(size_t z = 0; z < points.size(); z++) {
 		array<int,3> key = to_array(points[z]);    
 		if (mappa_vertici.find(key) == mappa_vertici.end()) {
 			mappa_vertici[key] = id_vertice;
@@ -365,7 +347,7 @@ vector<Vector3d> trova_punti_vicini(const Vector3d& punto, const vector<Vector3d
     ordinati.push_back(punti[attuale]);
     usati.insert(attuale);
 
-    for (int step = 1; step < vicini_indici.size(); ++step) {
+    for (size_t step = 1; step < vicini_indici.size(); ++step) {
         double min_d = numeric_limits<double>::max();
         size_t prossimo = -1;
 
@@ -422,10 +404,10 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
 		s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
 		id_lato++;
 	}
-	for(int j = 0; j < punti_unici.size() - 6 * b; j++) {
+	for(size_t j = 0; j < punti_unici.size() - 6 * b; j++) {
 		vector<Vector3d> vicini = trova_punti_vicini(punti_unici[j + 6*b], punti_unici);
 		auto key_j = to_array(punti_unici[6 * b + j].normalized());
-		for(int k = 0; k < vicini.size(); k++){
+		for(size_t k = 0; k < vicini.size(); k++){
 			auto key_j1 = to_array(vicini[k].normalized());
 			if (mappa_lati.find({key_j, key_j1}) == mappa_lati.end() &&
 				mappa_lati.find({key_j1, key_j}) == mappa_lati.end()) 
@@ -490,10 +472,10 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 				int& id_faccia,
 				int& b,
 				ofstream& s_g_Cell2Ds) {	
-	for(int i = 0; i < punti_unici.size() - 6*b; i++) {
+	for(size_t i = 0; i < punti_unici.size() - 6*b; i++) {
 		vector<Vector3d> vicini = trova_punti_vicini(punti_unici[i + 6*b], punti_unici);
 		auto key_j = to_array(punti_unici[6*b + i].normalized());
-		for(int j = 0; j < vicini.size() - 1; j++) {
+		for(size_t j = 0; j < vicini.size() - 1; j++) {
 			auto key_j1 = to_array(vicini[j].normalized());
 			auto key_j2 = to_array(vicini[j + 1].normalized());
 			if(mappa_facce.find({key_j, key_j1,key_j2}) == mappa_facce.end() && mappa_facce.find({key_j, key_j2,key_j1}) == mappa_facce.end() &&
@@ -530,6 +512,7 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 	return true;
 }
 
+/*
 bool file_vertici_duale(int F_s_g, ) {
 	vector<Vector3d> baricentri(F_s_g);
 	double eps = 1e-3;
@@ -553,3 +536,4 @@ bool file_vertici_duale(int F_s_g, ) {
 		s_g_Cell0Ds << j << " " << baricentro[0] << " " << baricentro[1] << " " baricentro[2] << "\n";
 	}
 }
+*/

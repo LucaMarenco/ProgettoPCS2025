@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 							return 1;
 						};	
 						
-						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
+						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
 							return 1;
 						};	
 						
-						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
+						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
 							return 1;
 						};	
 						
-						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
+						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
 			}
 					// Triangolazione classe II
 			else if(b == c && b >= 1) {
-				int T = b * b + b * c + c * c; 
+				//int T = b * b + b * c + c * c; 
 				ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
 				ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
 				ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
@@ -398,7 +398,7 @@ int main(int argc, char *argv[])
 						Vector3d C = tCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
 						vector<Vector3d> punti_n_n = punti_triangolazione_II_n_n(A, B, C, b);
-						if(!file_vertici_II(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
 						Vector3d C = oCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
 						vector<Vector3d> punti_n_n = punti_triangolazione_II_n_n(A, B, C, b);
-						if(!file_vertici_II(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -489,7 +489,7 @@ int main(int argc, char *argv[])
 						Vector3d C = iCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
 						vector<Vector3d> punti_n_n = punti_triangolazione_II_n_n(A, B, C, b);
-						if(!file_vertici_II(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
