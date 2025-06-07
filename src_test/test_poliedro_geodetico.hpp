@@ -83,7 +83,7 @@ TEST(Punti_lungo_i_lati_n_n_test, Normalizzazione) {
 	}
 }
 
-TEST(Trova_punti_vicini, Numero_punti_e_vicinanza) {
+TEST(TrovapuntiviciniTest, Numero_punti_e_vicinanza) {
 	Vector3d punto(-0.85065081, 0.00000000, 0.52573111);
 	vector<Vector3d> points = {{ 0.57735027,  0.57735027,  0.57735027}, {-0.57735027, -0.57735027,  0.57735027},
 	{-0.57735027,  0.57735027, -0.57735027}, { 0.57735027, -0.57735027, -0.57735027}, {0.52573111, 0.85065081, 0.00000000},
@@ -93,7 +93,7 @@ TEST(Trova_punti_vicini, Numero_punti_e_vicinanza) {
 	
 }
 
-TEST(Id_vertici_test, Valore_id) {
+TEST(FileVerticiTest, PuntiCorretti) {
 	Vector3d A( 0.57735027,  0.57735027,  0.57735027);
 	Vector3d B(-0.57735027, -0.57735027,  0.57735027);
 	Vector3d C(-0.57735027,  0.57735027, -0.57735027);
@@ -114,5 +114,16 @@ TEST(Id_vertici_test, Valore_id) {
 	string output = s_g_Cell0Ds.str();
 	
 	EXPECT_NE(output.find("0 0.577 0.577 0.577"), string::npos);
+	
+	bool result_II = file_vertici_II(points, mappa_vertici, id_vertice, s_g_Cell0Ds);
+	
+	EXPECT_TRUE(result_II);
+	
+	EXPECT_EQ(mappa_vertici.size(), 3);
+    EXPECT_EQ(id_vertice, 3);
+	
+	string output_II = s_g_Cell0Ds.str();
+	
+	EXPECT_NE(output_II.find("0 0.577 0.577 0.577"), string::npos);
 	
 }
