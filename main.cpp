@@ -413,15 +413,15 @@ int main(int argc, char *argv[])
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 
-						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						}; 	
+					}
+					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
-						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);	
-					} 
+					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
 				}
 				else if (q == 4) {
 					int F = 8;
@@ -458,16 +458,15 @@ int main(int argc, char *argv[])
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 
-						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						}; 	
+					}
+					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
-
-						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);	
-					} 
+					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
 				}
 				else if (q == 5) {
 					int F = 20;
@@ -504,16 +503,15 @@ int main(int argc, char *argv[])
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 
-						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						}; 	
+					}
+					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
-
-						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);	
-					} 
+					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
 				}
 			}				
 		}

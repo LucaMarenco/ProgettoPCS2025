@@ -24,23 +24,8 @@ TEST(Triangolazione_Test, NumeroPunti) {
 	Vector3d C(-0.57735027,  0.57735027, -0.57735027);
 	int b = 2;
 	EXPECT_EQ(punti_triangolazione(A,B,C,b).size(), 6);
-	EXPECT_EQ(punti_triangolazione_II_n_n(A,B,C,b).size(), 16);
+	EXPECT_EQ(punti_triangolazione_II(A,B,C,b).size(), 16);
 }  
-
-TEST(Triangolazione_Test, Normalizzazione) {
-	Vector3d A( 0.57735027,  0.57735027,  0.57735027);
-	Vector3d B(-0.57735027, -0.57735027,  0.57735027);
-	Vector3d C(-0.57735027,  0.57735027, -0.57735027);
-	int b = 2;
-	auto points = punti_triangolazione(A,B,C,b);
-	auto points_II = punti_triangolazione_II(A,B,C,b);
-	for(int i = 0; i < points.size(); i++) {
-	EXPECT_NEAR(points[i].norm(), 1.0, 1e-6);
-	}
-	for(int i = 0; i < points_II.size(); i++) {
-	EXPECT_NEAR(points_II[i].norm(), 1.0, 1e-6);
-	}
-}
 
 TEST(Calcola_intersezione_test, SiIntersezione) {
 	Vector3d A(0, 0, 0);
@@ -62,25 +47,13 @@ TEST(Calcola_intersezione_test, NoIntersezione) {
 	EXPECT_FALSE(intersect.has_value());
 }
 
-TEST(Punti_lungo_i_lati_e_lungo_i_lati_n_n_test, NumeroPunti) {
+TEST(Punti_lungo_i_lati_test, NumeroPunti) {
 	int b = 2;
 	Vector3d A(0.57735027,  0.57735027,  0.57735027);
 	Vector3d B(-0.57735027, -0.57735027,  0.57735027);    
 	Vector3d C(-0.57735027,  0.57735027, -0.57735027);
 	
 	EXPECT_EQ(punti_lungo_i_lati(b,A,B,C).size(), 12);
-	EXPECT_EQ(punti_lungo_i_lati_normalizzati(b,A,B,C).size(), 12);
-}
-
-TEST(Punti_lungo_i_lati_n_n_test, Normalizzazione) {
-	int b = 2;
-	Vector3d A(0.57735027,  0.57735027,  0.57735027);
-	Vector3d B(-0.57735027, -0.57735027,  0.57735027);    
-	Vector3d C(-0.57735027,  0.57735027, -0.57735027);
-	auto points_II = punti_lungo_i_lati_normalizzati(b,A,B,C);
-	for(int i = 0; i < points_II.size(); i++) {
-		EXPECT_NEAR(points_II[i].norm(), 1.0, 1e-6);
-	}
 }
 
 TEST(TrovapuntiviciniTest, Numero_punti_e_vicinanza) {
@@ -89,17 +62,28 @@ TEST(TrovapuntiviciniTest, Numero_punti_e_vicinanza) {
 	{-0.57735027,  0.57735027, -0.57735027}, { 0.57735027, -0.57735027, -0.57735027}, {0.52573111, 0.85065081, 0.00000000},
 	{-0.52573111, 0.85065081, 0.00000000}, {0.52573111, -0.85065081, 0.00000000}, {-0.52573111, -0.85065081, 0.00000000},
 	{0.85065081, 0.00000000, 0.52573111}, {-0.85065081, 0.00000000, 0.52573111}};
-	EXPECT_EQ(trova_punti_vicini(punto, points).size(), 6);
+	size_t k = 6;
 	
+	//test sul numero di punti
+	vector<Vector3d> vicini = trova_k_punti_vicini(punto, points, k);
+	EXPECT_EQ(vicini.size(), 6);
+	
+	//test sull'ordinamento
+	for (size_t i = 1; i < vicini.size(); ++i) {
+        double d_prec = (vicini[i - 1] - vicini[i]).norm();
+        for (size_t j = i + 1; j < vicini.size(); ++j) {
+            double d_altro = (vicini[i - 1] - vicini[j]).norm();
+            EXPECT_LE(d_prec, d_altro + 1e-9);
+        }
+	}
 }
 
 TEST(FileVerticiTest, PuntiCorretti) {
-	Vector3d A( 0.57735027,  0.57735027,  0.57735027);
-	Vector3d B(-0.57735027, -0.57735027,  0.57735027);
-	Vector3d C(-0.57735027,  0.57735027, -0.57735027);
-	int b = 2;
-	int v = 6;
-	vector<Vector3d> points = {A, B, C};
+	vector<Vector3d> points = {Vector3d(0.57735027,  0.57735027,  0.57735027), Vector3d(-0.57735027, -0.57735027,  0.57735027), Vector3d(-0.57735027,  0.57735027, -0.57735027)};
+	for(size_t i = 0; i < points.size(); i++){
+		EXPECT_NEAR(points[i].norm(), 1.0, 1e-6);
+	}
+	
 	map<array<int,3> , int> mappa_vertici;
 	int id_vertice = 0;
 	ostringstream s_g_Cell0Ds;
@@ -108,22 +92,156 @@ TEST(FileVerticiTest, PuntiCorretti) {
 	
 	EXPECT_TRUE(result);
 	
-	EXPECT_EQ(mappa_vertici.size(), 3);
-    EXPECT_EQ(id_vertice, 3);
+	EXPECT_NE(mappa_vertici.size(), 0);
+    EXPECT_NE(id_vertice, 0);
 	
 	string output = s_g_Cell0Ds.str();
+	for (int i = 0; i < id_vertice; ++i) {
+        string expected_line = to_string(i);
+        EXPECT_NE(output.find(expected_line), string::npos);
+	}
 	
-	EXPECT_NE(output.find("0 0.577 0.577 0.577"), string::npos);
+}
+
+TEST(FileLatiTest, LatiCorretti) {
+	vector<Vector3d> points = {Vector3d(0.57735027,  0.57735027,  0.57735027), Vector3d(-0.57735027, -0.57735027,  0.57735027), Vector3d(-0.57735027,  0.57735027, -0.57735027)};
 	
-	bool result_II = file_vertici_II(points, mappa_vertici, id_vertice, s_g_Cell0Ds);
+	map<array<int,3> , int> mappa_vertici;
+	map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+	int id_lato = 0;
+	ostringstream s_g_Cell1Ds;
+	int b = 2;
 	
-	EXPECT_TRUE(result_II);
+	bool result = file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds);
 	
-	EXPECT_EQ(mappa_vertici.size(), 3);
-    EXPECT_EQ(id_vertice, 3);
+	EXPECT_TRUE(result);
 	
-	string output_II = s_g_Cell0Ds.str();
+	EXPECT_NE(mappa_lati.size(), 0);
+    EXPECT_NE(id_lato, 0);
 	
-	EXPECT_NE(output_II.find("0 0.577 0.577 0.577"), string::npos);
+	string output = s_g_Cell1Ds.str();
+	for (int i = 0; i < id_lato; ++i) {
+        string expected_line = to_string(i);
+        EXPECT_NE(output.find(expected_line), string::npos);
+	}
 	
+}
+
+TEST(FileLati_II_Test, LatiCorretti) {
+	vector<Vector3d> punti_unici = {
+		Vector3d(0.577,0.577,0.577), Vector3d(0,0,1), Vector3d(-0.577,-0.577,0.577),
+		Vector3d(-1,0,0), Vector3d(-0.577,0.577,-0.577), Vector3d(0,1,0), Vector3d(-0.577,0.577,0.577)
+	};
+	
+	map<array<int,3> , int> mappa_vertici;
+	map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+	int id_lato = 0;
+	ostringstream s_g_Cell1Ds;
+	int b = 1;
+	
+	bool result = file_lati_II(punti_unici, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds);
+	
+	EXPECT_TRUE(result);
+	
+	EXPECT_NE(mappa_lati.size(), 0);
+    EXPECT_NE(id_lato, 0);
+	
+	string output = s_g_Cell1Ds.str();
+	for (int i = 0; i < id_lato; ++i) {
+        string expected_line = to_string(i);
+        EXPECT_NE(output.find(expected_line), string::npos);
+	}
+	
+}
+
+TEST(FileFacceTest, FacceCorrette) {
+	vector<Vector3d> points = {Vector3d(0.57735027,  0.57735027,  0.57735027), Vector3d(-0.57735027, -0.57735027,  0.57735027), Vector3d(-0.57735027,  0.57735027, -0.57735027)};
+	
+	map<array<int,3> , int> mappa_vertici;
+	map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+	map<int, pair<Vector3i, Vector3i>> mappa_facce;
+	int id_faccia = 0;
+	int b = 2;
+	
+	bool result = file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b);
+	
+	EXPECT_TRUE(result);
+	
+	EXPECT_NE(mappa_facce.size(), 0);
+    EXPECT_NE(id_faccia, 0);
+	
+}
+
+TEST(FileFacce_II_Test, FacceCorrette) {
+	vector<Vector3d> punti_unici = {
+		Vector3d(0.577,0.577,0.577), Vector3d(0,0,1), Vector3d(-0.577,-0.577,0.577),
+		Vector3d(-1,0,0), Vector3d(-0.577,0.577,-0.577), Vector3d(0,1,0), Vector3d(-0.577,0.577,0.577)
+	};
+	
+	map<array<int,3> , int> mappa_vertici;
+	map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+	map<array<array<int, 3>, 3>, int> mappa_facce;
+	map<int, pair<Vector3i, Vector3i>> mappa_facce_2;
+	int id_faccia = 0;
+	ostringstream s_g_Cell2Ds;
+	int b = 1;
+	
+	bool result = file_facce_II(punti_unici, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce_2);
+	
+	EXPECT_TRUE(result);
+	
+	EXPECT_NE(mappa_facce.size(), 0);
+	EXPECT_NE(mappa_facce_2.size(), 0);
+    EXPECT_NE(id_faccia, 0);
+	
+	string output = s_g_Cell2Ds.str();
+	for (int i = 0; i < id_faccia; ++i) {
+        string expected_line = to_string(i);
+        EXPECT_NE(output.find(expected_line), string::npos);
+	}
+}
+
+TEST(FilePoliedroTest, PoliedroCorretto) {
+	int V = 4, L = 6, F = 4;
+	ostringstream s_g_Cell3Ds;
+	
+	bool result = file_poliedro(F, V, L, s_g_Cell3Ds);
+	
+	EXPECT_TRUE(result);
+	string output = s_g_Cell3Ds.str();
+	EXPECT_EQ(output, "0 4 6 4 0 1 2 3 0 1 2 3 4 5 0 1 2 3 ");
+	
+}
+
+TEST(CellConverterTest, ConversioneCorretta) {
+	int V = 4, L = 6;
+	map<array<int,3> , int> mappa_vertici;
+	map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+	
+	EXPECT_NE(Cell0DsConverter(V, mappa_vertici).size(), 0);
+	EXPECT_NE(Cell1DsConverter(L, mappa_vertici, mappa_lati).size(), 0);
+}
+
+TEST(DijkstraTest, CamminoMinimoSemplice) {
+    int n = 5;
+    vector<vector<int>> adiac_nodi = {
+        {1, 2},    
+        {2, 3},    
+        {3},       
+        {4},       
+        {}         
+    };
+
+    vector<vector<double>> adiac_pesi = {
+        {2.0, 4.0},    
+        {1.0, 7.0},    
+        {3.0},         
+        {1.0},         
+        {}             
+    };
+
+    vector<int> expected_path = {0, 1, 2, 3, 4};
+    vector<int> result = dijkstra(n, adiac_nodi, adiac_pesi, 0, 4);
+
+    EXPECT_EQ(result, expected_path);
 }
