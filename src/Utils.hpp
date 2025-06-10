@@ -48,9 +48,9 @@ optional<Vector3d> calcola_intersezione(const Vector3d& A, const Vector3d& B, co
 
 vector<Vector3d> punti_lungo_i_lati(int b, const Vector3d& A, const Vector3d& B, const Vector3d& C);
 
-vector<Vector3d> punti_lungo_i_lati_normalizzati(int b, const Vector3d& A, const Vector3d& B, const Vector3d& C);
-
 vector<Vector3d> punti_triangolazione_II(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b);
+
+vector<Vector3d> trova_k_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti, size_t k);
 
 bool file_lati_II(const vector<Vector3d>& punti_unici,
                   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
@@ -58,10 +58,6 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
                   int& id_lato,
                   int& b,
                   ostream& s_g_Cell1Ds);
-
-vector<Vector3d> punti_triangolazione_II_n_n(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b);
-
-vector<Vector3d> trova_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti);
 
 vector<int> dijkstra(int n, vector<vector<int>>& adiac_nodi, vector<vector<double>>& adiac_pesi, int start, int end) ;
 
@@ -71,4 +67,5 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 			        map<array<int,3> , int>& mappa_vertici,
 				int& id_faccia,
 				int& b,
-				ostream& s_g_Cell2Ds);
+				ostream& s_g_Cell2Ds,
+				map<int, pair<Vector3i, Vector3i>>& mappa_facce_2);

@@ -389,6 +389,7 @@ int main(int argc, char *argv[])
 					map<array<int,3> , int> mappa_vertici;
 					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
 					map<array<array<int, 3>, 3>, int> mappa_facce;
+					map<int, pair<Vector3i, Vector3i>> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = tCell2DsVertices[i][0];
 						int id_B = tCell2DsVertices[i][1]; 
@@ -397,19 +398,18 @@ int main(int argc, char *argv[])
 						Vector3d B = tCell0DsCoordinates[id_B];
 						Vector3d C = tCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
-						vector<Vector3d> punti_n_n = punti_triangolazione_II_n_n(A, B, C, b);
 						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
 
-						if (!file_lati_II(punti_n_n, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						}; 
-						if (!file_facce_II(punti_n_n, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
+						if (!file_facce_II(points, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce_2))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -434,6 +434,7 @@ int main(int argc, char *argv[])
 					map<array<int,3> , int> mappa_vertici;
 					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
 					map<array<array<int, 3>, 3>, int> mappa_facce;
+					map<int, pair<Vector3i, Vector3i>> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = oCell2DsVertices[i][0];
 						int id_B = oCell2DsVertices[i][1]; 
@@ -442,19 +443,18 @@ int main(int argc, char *argv[])
 						Vector3d B = oCell0DsCoordinates[id_B];
 						Vector3d C = oCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
-						vector<Vector3d> punti_n_n = punti_triangolazione_II_n_n(A, B, C, b);
 						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
 
-						if (!file_lati_II(punti_n_n, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						}; 
-						if (!file_facce_II(punti_n_n, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
+						if (!file_facce_II(points, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce_2))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -480,6 +480,7 @@ int main(int argc, char *argv[])
 					map<array<int,3> , int> mappa_vertici;
 					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
 					map<array<array<int, 3>, 3>, int> mappa_facce;
+					map<int, pair<Vector3i, Vector3i>> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = iCell2DsVertices[i][0];
 						int id_B = iCell2DsVertices[i][1]; 
@@ -488,19 +489,18 @@ int main(int argc, char *argv[])
 						Vector3d B = iCell0DsCoordinates[id_B];
 						Vector3d C = iCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
-						vector<Vector3d> punti_n_n = punti_triangolazione_II_n_n(A, B, C, b);
 						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
 
-						if (!file_lati_II(punti_n_n, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						}; 
-						if (!file_facce_II(punti_n_n, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds))
+						if (!file_facce_II(points, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce_2))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
