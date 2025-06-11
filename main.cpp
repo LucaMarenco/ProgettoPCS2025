@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
 			c = stoi(argv[4]);
 		}
 		
+		bool duale = false;
 		if (stoi(argv[1]) == 3){
 			p = stoi(argv[1]);
 			q = stoi(argv[2]);
@@ -49,9 +50,8 @@ int main(int argc, char *argv[])
 		else if (stoi(argv[2]) == 3){
 			p = stoi(argv[2]);
 			q = stoi(argv[1]);
+			duale = true;
 		}
-		
-		
 		
 		vector<vector<int>> tCells = {
 			{0, 3, 3, 0, 1, 2, 0, 3, 1},
@@ -182,6 +182,10 @@ int main(int argc, char *argv[])
         int F_s_g = 0;
 		int V_s_g = 0;
 		int L_s_g = 0;
+		int id_lato_dual = 0;
+		map<array<int,3> , int> mappa_vertici;    
+		map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+		map<int, pair<Vector3i, Vector3i>> mappa_facce;
 		MatrixXd Cell0DsCoordinates;
 		MatrixXi Cell1DsExtrema;
 		if (p == 3) {
@@ -203,11 +207,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<int,3> , int> mappa_vertici;    
-					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
-					map<int, pair<Vector3i, Vector3i>> mappa_facce;
 					//Siamo nel caso tetraedro:
-					//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
 					for(int i = 0; i < F; i++) {
 						int id_A = tCell2DsVertices[i][0];
 						int id_B = tCell2DsVertices[i][1]; 
@@ -216,14 +216,14 @@ int main(int argc, char *argv[])
 						Vector3d B = tCell0DsCoordinates[id_B];
 						Vector3d C = tCell0DsCoordinates[id_C];	
 						vector<Vector3d> points = punti_triangolazione(A,B,C,b);
-						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
 						
 						
-						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -261,11 +261,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<int,3> , int> mappa_vertici;    
-					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
-					map<int, pair<Vector3i, Vector3i>> mappa_facce;
 					//Siamo nel caso ottaedro:
-					//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
 					for(int i = 0; i < F; i++) {
 						int id_A = oCell2DsVertices[i][0];
 						int id_B = oCell2DsVertices[i][1]; 
@@ -274,14 +270,14 @@ int main(int argc, char *argv[])
 						Vector3d B = oCell0DsCoordinates[id_B];
 						Vector3d C = oCell0DsCoordinates[id_C];	
 						vector<Vector3d> points = punti_triangolazione(A,B,C,b);
-						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						};
 						
 						
-						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -299,15 +295,28 @@ int main(int argc, char *argv[])
 						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
 					}
 					
-					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
-					{
-						cerr << "errore nella compilazione del file" << endl;
-						return 1;
-					};
-					
-					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
-					
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						// LATI?? non corretto
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
 				}
 				
 				else if(q == 5) {
@@ -318,11 +327,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<int,3> , int> mappa_vertici;    
-					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
-					map<int, pair<Vector3i, Vector3i>> mappa_facce;
 					//Siamo nel caso icosaedro:
-					//in questo caso il programma deve anche restituirmi un poliedro di Goldberg di classe I:
 					for(int i = 0; i < F; i++) {
 						int id_A = iCell2DsVertices[i][0];
 						int id_B = iCell2DsVertices[i][1]; 
@@ -331,24 +336,23 @@ int main(int argc, char *argv[])
 						Vector3d B = iCell0DsCoordinates[id_B];
 						Vector3d C = iCell0DsCoordinates[id_C];	
 						vector<Vector3d> points = punti_triangolazione(A,B,C,b);
-						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};
+						}
 						
-						
-						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};	
+						}
 						
 						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};					
+						}				
 					}
 					
 					for (const auto& [key, value] : mappa_facce)
@@ -356,18 +360,31 @@ int main(int argc, char *argv[])
 						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
 					}
 					
-					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
-					{
-						cerr << "errore nella compilazione del file" << endl;
-						return 1;
-					};
-					
-					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
 				
 				}							
 			}
-					// Triangolazione classe II
+		    // Triangolazione classe II
 			else if(b == c && b >= 1) {
 				//int T = b * b + b * c + c * c; 
 				ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
@@ -386,10 +403,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<int,3> , int> mappa_vertici;
-					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
-					map<array<array<int, 3>, 3>, int> mappa_facce;
-					map<int, pair<Vector3i, Vector3i>> mappa_facce_2;
+					map<array<array<int, 3>, 3>, int> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = tCell2DsVertices[i][0];
 						int id_B = tCell2DsVertices[i][1]; 
@@ -398,30 +412,44 @@ int main(int argc, char *argv[])
 						Vector3d B = tCell0DsCoordinates[id_B];
 						Vector3d C = tCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
-						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};
+						}
 
-						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 
-						if (!file_facce_II(points, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce_2))
+						}
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 	
+						}	
 					}
-					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};
-					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
 				}
 				else if (q == 4) {
 					int F = 8;
@@ -431,10 +459,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<int,3> , int> mappa_vertici;
-					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
-					map<array<array<int, 3>, 3>, int> mappa_facce;
-					map<int, pair<Vector3i, Vector3i>> mappa_facce_2;
+					map<array<array<int, 3>, 3>, int> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = oCell2DsVertices[i][0];
 						int id_B = oCell2DsVertices[i][1]; 
@@ -443,30 +468,44 @@ int main(int argc, char *argv[])
 						Vector3d B = oCell0DsCoordinates[id_B];
 						Vector3d C = oCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
-						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};
+						}
 
-						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 
-						if (!file_facce_II(points, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce_2))
+						}
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 	
+						}
 					}
-					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};
-					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
 				}
 				else if (q == 5) {
 					int F = 20;
@@ -476,10 +515,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<int,3> , int> mappa_vertici;
-					map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
-					map<array<array<int, 3>, 3>, int> mappa_facce;
-					map<int, pair<Vector3i, Vector3i>> mappa_facce_2;
+					map<array<array<int, 3>, 3>, int> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = iCell2DsVertices[i][0];
 						int id_B = iCell2DsVertices[i][1]; 
@@ -488,30 +524,44 @@ int main(int argc, char *argv[])
 						Vector3d B = iCell0DsCoordinates[id_B];
 						Vector3d C = iCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
-						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds))
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};
+						}
 
-						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds))
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 
-						if (!file_facce_II(points, mappa_facce,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce_2))
+						}
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						}; 	
+						}
 					}
-					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
-						};
-					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
 				}
 			}				
 		}
