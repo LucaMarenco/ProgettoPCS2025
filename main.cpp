@@ -14,6 +14,7 @@ crea 4 file txt che rappresentano il poliedro geodetico che si ottiene a partire
 #include <cmath>
 #include <iomanip>
 #include <optional>
+#include <algorithm>
 #include "Utils.hpp"
 #include "UCDUtilities.hpp"
 
@@ -559,6 +560,10 @@ int main(int argc, char *argv[])
 		else{
 			cerr << "Input non valido" << endl;
 		}
+		
+		if(duale){
+			swap(V_s_g, F_s_g);
+		}			
 	    vector<double> ShortPath_v(V_s_g, 0.0);
 		vector<double> ShortPath_l(L_s_g, 0.0);
 		if (argc == 7){
