@@ -25,7 +25,7 @@ using namespace Eigen;
 
 int main(int argc, char *argv[])
 {
-	if (argc == 5 || argc ==7 ){
+	if (argc == 5 || argc ==7){
 		int b;
 		int c;
 		int p;
@@ -44,15 +44,32 @@ int main(int argc, char *argv[])
 		}
 		
 		bool duale = false;
-		if (stoi(argv[1]) == 3){
+		if (stoi(argv[1]) == 3 && stoi(argv[2]) != 3){
 			p = stoi(argv[1]);
 			q = stoi(argv[2]);
 		}
-		else if (stoi(argv[2]) == 3){
+		else if (stoi(argv[2]) == 3 && stoi(argv[1]) != 3){
 			p = stoi(argv[2]);
 			q = stoi(argv[1]);
 			duale = true;
 		}
+		else if (stoi(argv[1]) == 3 && stoi(argv[2]) == 3){
+			string risposta;
+			cout << "duale? (d/n): ";
+			cin >> risposta;
+
+			if (risposta == "d" || risposta == "D") {
+				p = stoi(argv[2]);
+				q = stoi(argv[1]);
+				duale = true;
+			} 
+			else if (risposta == "n" || risposta == "N") {
+				p = stoi(argv[1]);
+				q = stoi(argv[2]);
+				duale = false;
+			}
+		}
+			
 		
 		vector<vector<int>> tCells = {
 			{0, 3, 3, 0, 1, 2, 0, 3, 1},
@@ -242,16 +259,28 @@ int main(int argc, char *argv[])
 						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
 					}
 					
-					if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
-					{
-						cerr << "errore nella compilazione del file" << endl;
-						return 1;
-					};
-					
-					
-					Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
-					Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
-
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						// LATI?? non corretto
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
 				}
 				
 				else if(q == 4) {

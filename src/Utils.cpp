@@ -1,513 +1,691 @@
-#include "Utils.hpp"
+/*Consideriamo di partire che abbiamo già dei file con le celle che rappresentano i solidi platonici con p = 3, 
+quindi tetraedro, ottaedro e icosaedro; e consideriamo anche di aver già aperto i file in lettura 
+nel programma (presi in input).
+Dati in input p,q,b,c bisogna innanzitutto, perché sia un solido geodetico, avere p = 3.
+Faccio una funzione void (perché non ritorna niente) che, dati in input i 4 interi p,q,b e c,
+crea 4 file txt che rappresentano il poliedro geodetico che si ottiene a partire da un certo solido platonico:
+*/
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <array>
-#include <vector>
 #include <map>
+#include <vector>
+#include <array>
 #include <Eigen/Dense>
 #include <cmath>
+#include <iomanip>
 #include <optional>
-#include <queue>
-#include <climits>
-#include <set>
 #include <algorithm>
+#include "Utils.hpp"
+#include "UCDUtilities.hpp"
 
 using namespace std;
 using namespace Eigen;
 
-array<int,3> to_array(const Vector3d& v) {
-	double eps = 1e-3;
-	return {static_cast<int>(v[0]/eps), static_cast<int>(v[1]/eps), static_cast<int>(v[2]/eps)};
-}
-	
-vector<Vector3d> punti_triangolazione(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b) {
-	vector<Vector3d> points;
-	for (int k = 0; k <= b; k++) {
-		for (int j = 0; j <= b - k; j++) {
-			double c_A = 1.0 - (double)k / b - (double)j / b;
-			double c_B = (double)k / b;
-			double c_C = (double)j / b;
-			Vector3d P = c_A * A + c_B * B + c_C * C;
-			points.push_back(P.normalized());
-		}
-	}
-	return(points);
-}
-
-bool file_vertici(const vector<Vector3d>& points, 
-				  map<array<int,3> , int>& mappa_vertici, 
-				  int& id_vertice, 
-				  ostream& s_g_Cell0Ds, bool duale) {		  
-	for(size_t z = 0; z < points.size(); z++) {
-		double eps = 1e-3;
-		array<int,3> key = to_array(points[z]);    
-		if (mappa_vertici.find(key) == mappa_vertici.end()) {
-			mappa_vertici[key] = id_vertice;
-			if(!duale){
-				s_g_Cell0Ds << id_vertice << " " << key[0]*eps << " " << key[1]*eps << " " << key[2]*eps << "\n"; }
-			id_vertice++;							// assegna nuovo ID a vertice se non esiste						
-		}
-	}
-	return true;
-}
-
-bool file_lati(const vector<Vector3d>& points, 
-			   map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
-			   map<array<int,3> , int>& mappa_vertici,
-			   int& id_lato,
-			   int b,
-			   ostream& s_g_Cell1Ds, bool duale) {				   
-	int d = 0;
-	for (int f = 0; f <= b; f++) {   
-		for (int j = d; j < d + b - f; j++) {
-			auto key_j = to_array(points[j]);
-			auto key_j1 = to_array(points[j+1]);
-			auto key_jb = to_array(points[j+b+1-f]);			
-			
-			if (mappa_lati.find({min({key_j,key_jb}), max({key_j,key_jb})}) != mappa_lati.end()){}
-			else{
-				mappa_lati.insert({{min({key_j,key_jb}), max({key_j,key_jb})},id_lato});
-				if(!duale){
-					s_g_Cell1Ds << id_lato << " " <<mappa_vertici[min({key_j,key_jb})] << " "<<  mappa_vertici[max({key_j,key_jb})]  <<"\n";}
-				id_lato++;
-			}
-			
-			if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()){}
-			else{
-				mappa_lati.insert({{min({key_j,key_j1}), max({key_j,key_j1})} ,id_lato});
-				if(!duale){
-					s_g_Cell1Ds << id_lato << " " << mappa_vertici[min({key_j,key_j1})]  << " " << mappa_vertici[max({key_j,key_j1})] << "\n";}
-				id_lato++;
-			}
-			
-			if (mappa_lati.find({min({key_jb,key_j1}), max({key_jb,key_j1})}) != mappa_lati.end()){}
-			else{
-				mappa_lati.insert({{min({key_jb,key_j1}), max({key_jb,key_j1})},id_lato});
-				if(!duale){
-					s_g_Cell1Ds << id_lato << " " <<mappa_vertici[min({key_jb,key_j1})] << " " << mappa_vertici[max({key_jb,key_j1})]<< "\n";}
-				id_lato++;
-			}	
-		}
-		d = d + b + 1 - f;	
-	}
-	return true;
-}			
-			   
-bool file_facce(const vector<Vector3d>& points,
-				map<int, pair<Vector3i, Vector3i>>& mappa_facce,
-				map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
-			    map<array<int,3> , int>& mappa_vertici,
-				int& id_faccia,
-				int b) {		
-	Vector3i id_vertici_faccia;
-	Vector3i id_lati_faccia;	
-	int d = 0;
-	for (int i = 0; i < b; i++) {   
-		for (int j = d; j < d + b - i; j++){
-			auto key_j = to_array(points[j]);
-			auto key_j1 = to_array(points[j+1]);
-			auto key_jb = to_array(points[j+b+1-i]);
-							
-			if(i == 0){
-				id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]}; 
-				if (mappa_lati.find({min({key_j,key_jb}),max({key_j,key_jb})}) != mappa_lati.end()){
-					id_lati_faccia= Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_jb}),max({key_j1,key_jb})}], mappa_lati[{min({key_j,key_jb}),max({key_j,key_jb})}]};
-					mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}}); 
-				}
-				id_faccia++;
-			}
-			else {
-				auto key_jb_m = to_array(points[j-b-1+i]);
-				
-				id_vertici_faccia = Vector3i{ mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]};  
-				id_lati_faccia = Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_jb}),max({key_j1,key_jb})}], mappa_lati[{min({key_j,key_jb}),max({key_j,key_jb})}]};
-				mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}}); 
-				id_faccia++;
-				
-				id_vertici_faccia = Vector3i{ mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb_m]}; 
-				id_lati_faccia = Vector3i{ mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_jb_m}),max({key_j1,key_jb_m})}], mappa_lati[{min({key_j,key_jb_m}),max({key_j,key_jb_m})}]};
-				mappa_facce.insert({id_faccia, {id_vertici_faccia, id_lati_faccia}});
-				id_faccia++;	
-			}
-		}
-		d = d + b + 1 - i;
-	}
-	return true;
-}
-
-bool file_poliedro(int& F_s_g,
-				   int& V_s_g,
-				   int& L_s_g,
-				   ostream& s_g_Cell3Ds) {
-	s_g_Cell3Ds << 0 << " " << V_s_g << " " << L_s_g << " " << F_s_g << " ";
-	for(int i = 0; i < V_s_g; i++) {
-		 s_g_Cell3Ds << i << " ";
-	}
-	for(int i = 0; i < L_s_g; i++) {
-		s_g_Cell3Ds << i << " ";
-	}
-	for(int i = 0; i < F_s_g; i++) {
-		s_g_Cell3Ds << i << " ";
-	}
-	return true;
-}
 
 
-MatrixXd Cell0DsConverter(int V_s_g, map<array<int,3> , int> mappa_vertici) {
-	MatrixXd Cell0DsCoordinates(3, V_s_g);
-	for (const auto& [coord,id] : mappa_vertici){
-		for (int d = 0; d < 3; ++d) {
-			Cell0DsCoordinates(d,id) = coord[d];
-		}
-	}		
-	return Cell0DsCoordinates;
-}
-
-
-MatrixXi Cell1DsConverter(int L_s_g, map<array<int,3> , int> mappa_vertici, map<pair<array<int,3>, array<int,3>>, int> mappa_lati) {
-	MatrixXi Cell1DsExtrema(2, L_s_g);
-	for (const auto& [coord,id] : mappa_lati){
-		Cell1DsExtrema(0,id) = mappa_vertici[coord.first];
-		Cell1DsExtrema(1,id) = mappa_vertici[coord.second];
-	}		
-	return Cell1DsExtrema;
-}
-
-
-
-optional<Vector3d> calcola_intersezione(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D)  
+int main(int argc, char *argv[])
 {
-    Vector3d dir1 = B - A;  // Vettore AB
-    Vector3d dir2 = D - C;  // Vettore CD
-    Vector3d AC = A - C;    // Vettore tra A e C
+	if (argc == 5 || argc ==7){
+		int b;
+		int c;
+		int p;
+		int q;
+		if (stoi(argv[3]) != 0 && stoi(argv[4]) == 0){
+			b = stoi(argv[3]);
+			c = stoi(argv[4]);
+		}
+		else if (stoi(argv[3]) == 0 && stoi(argv[4]) != 0){
+			b = stoi(argv[4]);
+			c = stoi(argv[3]);
+		}
+		else if (stoi(argv[3]) >= 1 && stoi(argv[3]) == stoi(argv[4])){
+			b = stoi(argv[3]);
+			c = stoi(argv[4]);
+		}
+		
+		bool duale = false;
+		if (stoi(argv[1]) == 3 && stoi(argv[2]) != 3){
+			p = stoi(argv[1]);
+			q = stoi(argv[2]);
+		}
+		else if (stoi(argv[2]) == 3 && stoi(argv[1]) != 3){
+			p = stoi(argv[2]);
+			q = stoi(argv[1]);
+			duale = true;
+		}
+		else if (stoi(argv[1]) == 3 && stoi(argv[2]) == 3){
+			string risposta;
+			cout << "Entrambi i valori sono 3. Vuoi eseguire in modalità duale? (d/n): ";
+			cin >> risposta;
 
-    double a = dir1.dot(dir1);
-    double b = dir1.dot(dir2);
-    double c = dir2.dot(dir2);
-    double d = dir1.dot(AC);
-    double e = dir2.dot(AC);
+			if (risposta == "d" || risposta == "D") {
+				p = stoi(argv[2]);
+				q = stoi(argv[1]);
+				duale = true;
+			} 
+			else if (risposta == "n" || risposta == "N") {
+				p = stoi(argv[1]);
+				q = stoi(argv[2]);
+				duale = false;
+			}
+		}
+			
+		
+		vector<vector<int>> tCells = {
+			{0, 3, 3, 0, 1, 2, 0, 3, 1},
+			{1, 3, 3, 0, 1, 3, 0, 4, 2},   // Questo è il Cell2 del tetraedro di partenza
+			{2, 3, 3, 0, 3, 2, 2, 5, 1},
+			{3, 3, 3, 1, 2, 3, 3, 5, 4}
+		};
+		
+		vector<vector<int>> oCells = {
+			{0, 3, 3, 0, 1, 2, 0, 4, 1},
+			{1, 3, 3, 0, 2, 3, 1, 5, 2},   // Questo è il Cell2 dell'ottaedro di partenza
+			{2, 3, 3, 0, 3, 4, 2, 6, 3},
+			{3, 3, 3, 0, 4, 1, 3, 7, 0},
+			{4, 3, 3, 5, 2, 1, 9, 4, 8},
+			{5, 3, 3, 5, 3, 2, 10, 5, 9},
+			{6, 3, 3, 5, 4, 3, 11, 6, 10},
+			{7, 3, 3, 5, 1, 4, 8, 7, 11}
+		};
+		
+		vector<vector<int>> iCells = {
+			{0, 3, 3, 0, 1, 8, 0, 7, 3},
+			{1, 3, 3, 0, 8, 4, 3, 19, 1},   // Questo è il Cell2 dell'icosaedro di partenza
+			{2, 3, 3, 0, 4, 5, 1, 18, 2},
+			{3, 3, 3, 0, 5, 10, 2, 21, 4},
+			{4, 3, 3, 0, 10, 1, 4, 8, 0},
+			{5, 3, 3, 1, 10, 7, 8, 25, 6},
+			{6, 3, 3, 1, 7, 6, 6, 22, 5},
+			{7, 3, 3, 1, 6, 8, 5, 23, 7},
+			{8, 3, 3, 2, 9, 3, 12, 16, 9},
+			{9, 3, 3, 2, 4, 9, 10, 20, 12},
+			{10, 3, 3, 2, 5, 4, 11, 18, 10},
+			{11, 3, 3, 2, 11, 5, 13, 28, 11},
+			{12, 3, 3, 2, 3, 11, 9, 17, 13},
+			{13, 3, 3, 3, 6, 7, 14, 22, 15},
+			{14, 3, 3, 3, 7, 11, 15, 26, 17},
+			{15, 3, 3, 3, 9, 6, 16, 24, 14},
+			{16, 3, 3, 7, 10, 11, 25, 29, 26},
+			{17, 3, 3, 4, 8, 9, 19, 27, 20},
+			{18, 3, 3, 5, 11, 10, 28, 29, 21},
+			{19, 3, 3, 6, 9, 8, 24, 27, 23},
+		};
 
-    double denominatore = a * c - b * b;
-    double t = (b * e - c * d) / denominatore;
-    double s = (a * e - b * d) / denominatore;
+		// Mappa che associa l'ID della faccia al vettore dei suoi vertici
+		map<int, vector<int>> tCell2DsVertices;
+		map<int, vector<int>> oCell2DsVertices;
+		map<int, vector<int>> iCell2DsVertices;
+		
+		for (const auto& cell : tCells) {
+			int face_id = cell[0]; // ID della faccia
+			int num_vertices = cell[1]; // Numero di vertici
 
-    // Controllo se l'intersezione cade dentro i due segmenti 
-    if (t < 0.0 || t > 1.0 || s < 0.0 || s > 1.0) {
-        return nullopt; // Non c'è intersezione dei segmenti
-    }
+			// Estrai i vertici dalla riga
+			vector<int> tvertices(cell.begin() + 3, cell.begin() + 3 + num_vertices);
 
-    Vector3d punto_intersezione = A + t * dir1;
-    return punto_intersezione; // Intersezione tra AB e CD
-}
+			// Aggiungi alla mappa
+			tCell2DsVertices[face_id] = tvertices;
+		}
+		
+		for (const auto& cell : oCells) {
+			int face_id = cell[0]; // ID della faccia
+			int num_vertices = cell[1]; // Numero di vertici
 
-vector<Vector3d> punti_lungo_i_lati(int b, const Vector3d& A, const Vector3d& B, const Vector3d& C) { // Per prendere i punti che si vanno a formare
-	vector<Vector3d> points;                                                     // lungo i lati della faccia che ho triangolato                              
-	points.push_back(A);
-	double frequenza = 2 * b;
-	for (int i = 1; i < 2 * b; i++) {
-		points.push_back(A * (1 - i / (double)frequenza) + B * (i / (double)frequenza));
-	}
-	points.push_back(B);
-	for (int i = 1; i < 2 * b; i++) {
-		points.push_back(B * (1 - i / (double)frequenza) + C * (i / (double)frequenza));
-	}
-	points.push_back(C);
-	for (int i = 1; i < 2 * b; i++) {
-		points.push_back(C * (1 - i / (double)frequenza) + A * (i / (double)frequenza));
-	}
-	return points;
-} 
+			// Estrai i vertici dalla riga
+			vector<int> overtices(cell.begin() + 3, cell.begin() + 3 + num_vertices);
+
+			// Aggiungi alla mappa
+			oCell2DsVertices[face_id] = overtices;
+		}
+		
+		for (const auto& cell : iCells) {
+			int face_id = cell[0]; // ID della faccia
+			int num_vertices = cell[1]; // Numero di vertici
+
+			// Estrai i vertici dalla riga
+			vector<int> ivertices(cell.begin() + 3, cell.begin() + 3 + num_vertices);
+
+			// Aggiungi alla mappa
+			iCell2DsVertices[face_id] = ivertices;
+		}
+		
+		vector<pair<int, Vector3d>> tVertices = {
+			{0, { 0.57735027,  0.57735027,  0.57735027}},
+			{1, {-0.57735027, -0.57735027,  0.57735027}},    // Questo è il Cell0 del tetraedro di partenza
+			{2, {-0.57735027,  0.57735027, -0.57735027}},
+			{3, { 0.57735027, -0.57735027, -0.57735027}}
+		}; 
+		
+		vector<pair<int, Vector3d>> oVertices = {
+			{0, {0,  0, 1}},
+			{1, {0, -1, 0}},    // Questo è il Cell0 dell'ottaedro di partenza
+			{2, { 1, 0, 0}},
+			{3, { 0, 1, 0}},
+			{4, {-1, 0, 0}},
+			{5, {0, 0, -1}}
+		};
+		
+		vector<pair<int, Vector3d>> iVertices = {
+			{0, {0.52573111, 0.85065081, 0.00000000}},
+			{1, {-0.52573111, 0.85065081, 0.00000000}},
+			{2, {0.52573111, -0.85065081, 0.00000000}},
+			{3, {-0.52573111, -0.85065081, 0.00000000}},		// Questo è il Cell0 dell'icosaedro di partenza
+			{4, {0.85065081, 0.00000000, 0.52573111}},
+			{5, {0.85065081, 0.00000000, -0.52573111}},
+			{6, {-0.85065081, 0.00000000, 0.52573111}},
+			{7, {-0.85065081, 0.00000000, -0.52573111}},
+			{8, {0.00000000, 0.52573111, 0.85065081}},
+			{9, {0.00000000, -0.52573111, 0.85065081}},
+			{10, {0.00000000, 0.52573111, -0.85065081}},
+			{11, {0.00000000, -0.52573111, -0.85065081}}
+		}; 
+		
+		map<int, Vector3d> tCell0DsCoordinates; // Mappa che associa l'ID di un vertice alle sue coordinate
+		map<int, Vector3d> oCell0DsCoordinates;
+		map<int, Vector3d> iCell0DsCoordinates;
+		
+		for (const auto& [id, coords] : tVertices) {
+			tCell0DsCoordinates[id] = coords;
+		}
+		
+		for (const auto& [id, coords] : oVertices) {
+			oCell0DsCoordinates[id] = coords;
+		}
+		
+		for (const auto& [id, coords] : iVertices) {
+			iCell0DsCoordinates[id] = coords;
+		}
+		
+        int F_s_g = 0;
+		int V_s_g = 0;
+		int L_s_g = 0;
+		int id_lato_dual = 0;
+		map<array<int,3> , int> mappa_vertici;    
+		map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
+		map<int, pair<Vector3i, Vector3i>> mappa_facce;
+		MatrixXd Cell0DsCoordinates;
+		MatrixXi Cell1DsExtrema;
+		if (p == 3) {
+			ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
+			ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
+			ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
+			ofstream s_g_Cell3Ds("s_g_Cell3Ds.txt");
+			s_g_Cell0Ds << "Id " << "x " << "y " << "z" << "\n";
+			s_g_Cell1Ds << "Id " << "start_vertex " << "end_vertex" << "\n"; 
+			s_g_Cell2Ds << "Id " << "num_vertices " << "num_edges " << "vertices " << "edges " << "\n";
+			s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
+			if (b >= 1 && c == 0 ){
+				int T = b * b + b * c + c * c; 
+				if (q == 3) {
+					int F = 4;
+					F_s_g = 4 * T;
+					V_s_g = 2 * T + 2;
+					L_s_g = 6 * T;
+					int id_vertice = 0;
+					int id_lato = 0;
+					int id_faccia = 0;
+					//Siamo nel caso tetraedro:
+					for(int i = 0; i < F; i++) {
+						int id_A = tCell2DsVertices[i][0];
+						int id_B = tCell2DsVertices[i][1]; 
+						int id_C = tCell2DsVertices[i][2];
+						Vector3d A = tCell0DsCoordinates[id_A];
+						Vector3d B = tCell0DsCoordinates[id_B];
+						Vector3d C = tCell0DsCoordinates[id_C];	
+						vector<Vector3d> points = punti_triangolazione(A,B,C,b);
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						};
+						
+						
+						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						};	
+						
+						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						};					
+					}
 					
-vector<Vector3d> punti_triangolazione_II(const Vector3d& A, const Vector3d& B, const Vector3d& C, int b) {
-	vector<Vector3d> points = punti_lungo_i_lati(b, A, B, C); // Punti lungo i lati della faccia già proiettati sulla sfera
-	vector<Vector3d> punti_lungo_lato = punti_lungo_i_lati(b, A, B, C);
-	vector<pair<Vector3d, Vector3d>> verticali; // Coppie di estremi che formano i lati verticali
-	int d_base = 1;
-	for(int j = 2; j < 4 * b - 1; j++) {  // Prendo i lati verticali per poi calcolare l'intersezione di ogni lato obliquo con 
-		if(j % 2 == 0) {                  // tutte le verticali prendendo così tutti i punti 
-			verticali.push_back({punti_lungo_lato[j], punti_lungo_lato[6 * b - d_base]});
-			d_base++;
-		}	
-	}
-	int d_inclinato_1 = 0;
-	int d_inclinato_2 = 1;
-	for(int i = 0; i < 6 * b; i++) {
-		if (i % 2 == 0 && i < 2 * b) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sul lato "sinistro"
-			for(size_t k = 0; k < verticali.size(); k++) {
-				auto intersezione = calcola_intersezione(punti_lungo_lato[i], punti_lungo_lato[3 * b - d_inclinato_1], verticali[k].first, verticali[k].second);  		
-				if (intersezione) {
-					points.push_back(*intersezione);
+					for (const auto& [key, value] : mappa_facce)
+					{
+						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
+					}
+					
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						// LATI?? non corretto
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
 				}
-			}
-			d_inclinato_1++;
-		}
-		else if (i % 2 == 0 && i > 4 * b) {
-			for(size_t k = 0; k < verticali.size(); k++) { // Qua prendo i lati obliqui che hanno come uno degli estremi i punti sulla base
-				auto intersezione = calcola_intersezione(punti_lungo_lato[i], punti_lungo_lato[4 * b - d_inclinato_2], verticali[k].first, verticali[k].second);
-				if (intersezione) {
-					points.push_back(*intersezione);
+				
+				else if(q == 4) {
+					int F = 8;
+					F_s_g = 8 * T;
+					V_s_g = 4 * T + 2;
+					L_s_g = 12 * T;
+					int id_vertice = 0;
+					int id_lato = 0;
+					int id_faccia = 0;
+					//Siamo nel caso ottaedro:
+					for(int i = 0; i < F; i++) {
+						int id_A = oCell2DsVertices[i][0];
+						int id_B = oCell2DsVertices[i][1]; 
+						int id_C = oCell2DsVertices[i][2];
+						Vector3d A = oCell0DsCoordinates[id_A];
+						Vector3d B = oCell0DsCoordinates[id_B];
+						Vector3d C = oCell0DsCoordinates[id_C];	
+						vector<Vector3d> points = punti_triangolazione(A,B,C,b);
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						};
+						
+						
+						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						};	
+						
+						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						};					
+					}
+					
+					for (const auto& [key, value] : mappa_facce)
+					{
+						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
+					}
+					
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						// LATI?? non corretto
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
 				}
+				
+				else if(q == 5) {
+					int F = 20;
+					F_s_g = 20 * T;
+					V_s_g = 10 * T + 2;
+					L_s_g = 30 * T;
+					int id_vertice = 0;
+					int id_lato = 0;
+					int id_faccia = 0;
+					//Siamo nel caso icosaedro:
+					for(int i = 0; i < F; i++) {
+						int id_A = iCell2DsVertices[i][0];
+						int id_B = iCell2DsVertices[i][1]; 
+						int id_C = iCell2DsVertices[i][2];
+						Vector3d A = iCell0DsCoordinates[id_A];
+						Vector3d B = iCell0DsCoordinates[id_B];
+						Vector3d C = iCell0DsCoordinates[id_C];	
+						vector<Vector3d> points = punti_triangolazione(A,B,C,b);
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						
+						if(!file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						
+						if(!file_facce(points, mappa_facce, mappa_lati, mappa_vertici, id_faccia, b))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}				
+					}
+					
+					for (const auto& [key, value] : mappa_facce)
+					{
+						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
+					}
+					
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
+				
+				}							
 			}
-			d_inclinato_2++;
-		}		
-	}
-	vector<Vector3d> punti_unici;
-	map<array<int,3> , int> mappa_vertici;
-	int id_vertice = 0;
-	for(size_t z = 0; z < points.size(); z++) {
-		array<int,3> key = to_array(points[z]);    
-		if (mappa_vertici.find(key) == mappa_vertici.end()) {
-			mappa_vertici[key] = id_vertice;
-			punti_unici.push_back(points[z].normalized());									
-			id_vertice++;
+		    // Triangolazione classe II
+			else if(b == c && b >= 1) { 
+				if (q == 3) {
+					int F = 4;
+					F_s_g = 4 * (3 * b * b + 3 * b);
+					V_s_g = 4 + 6 * (2 * b - 1) + 4 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
+					L_s_g = 6 * (2 * b) + 4 * (9 * b * b / 2.0 + 3 * b / 2.0);
+					int id_vertice = 0;
+					int id_lato = 0;
+					int id_faccia = 0;
+					map<array<array<int, 3>, 3>, int> mappa_facce_2;
+					for(int i = 0; i < F; i++) {
+						int id_A = tCell2DsVertices[i][0];
+						int id_B = tCell2DsVertices[i][1]; 
+						int id_C = tCell2DsVertices[i][2];
+						Vector3d A = tCell0DsCoordinates[id_A];
+						Vector3d B = tCell0DsCoordinates[id_B];
+						Vector3d C = tCell0DsCoordinates[id_C];
+						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}	
+					}
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
+				}
+				else if (q == 4) {
+					int F = 8;
+					F_s_g = 8 * (3 * b * b + 3 * b);
+					V_s_g = 6 + 12 * (2 * b - 1) + 8 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
+					L_s_g = 12 * (2 * b) + 8 * (9 * b * b / 2.0 + 3 * b / 2.0);
+					int id_vertice = 0;
+					int id_lato = 0;
+					int id_faccia = 0;
+					map<array<array<int, 3>, 3>, int> mappa_facce_2;
+					for(int i = 0; i < F; i++) {
+						int id_A = oCell2DsVertices[i][0];
+						int id_B = oCell2DsVertices[i][1]; 
+						int id_C = oCell2DsVertices[i][2];
+						Vector3d A = oCell0DsCoordinates[id_A];
+						Vector3d B = oCell0DsCoordinates[id_B];
+						Vector3d C = oCell0DsCoordinates[id_C];
+						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
+				}
+				else if (q == 5) {
+					int F = 20;
+					F_s_g = 20 * (3 * b * b + 3 * b);
+					V_s_g = 12 + 30 * (2 * b - 1) + 20 * (3 * b * b / 2.0 - 3 * b / 2.0 + 1);
+					L_s_g = 30 * (2 * b) + 20 * (9 * b * b / 2.0 + 3 * b / 2.0);
+					int id_vertice = 0;
+					int id_lato = 0;
+					int id_faccia = 0;
+					map<array<array<int, 3>, 3>, int> mappa_facce_2;
+					for(int i = 0; i < F; i++) {
+						int id_A = iCell2DsVertices[i][0];
+						int id_B = iCell2DsVertices[i][1]; 
+						int id_C = iCell2DsVertices[i][2];
+						Vector3d A = iCell0DsCoordinates[id_A];
+						Vector3d B = iCell0DsCoordinates[id_B];
+						Vector3d C = iCell0DsCoordinates[id_C];
+						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
+						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+
+						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					if(duale){
+						map<array<int,3> , int> mappa_vertici_duale ;
+						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
+						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+					}
+					else{
+						if(!file_poliedro(F_s_g, V_s_g, L_s_g, s_g_Cell3Ds))
+						{
+							cerr << "errore nella compilazione del file" << endl;
+							return 1;
+						}
+						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
+						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
+					}
+				}
+			}				
 		}
-	}
-	return punti_unici;
-}
-
-vector<Vector3d> trova_k_punti_vicini(const Vector3d& punto, const vector<Vector3d>& punti, size_t k) {
-    vector<pair<double, size_t>> distanze_con_indice;
-
-    for (size_t i = 0; i < punti.size(); ++i) {
-        if ((punti[i] - punto).norm() > 1e-12) {
-            double distanza = (punti[i] - punto).norm();
-            distanze_con_indice.emplace_back(distanza, i);
-        }
-    }
-
-    sort(distanze_con_indice.begin(), distanze_con_indice.end());
-
-    // Prendo gli indici dei k punti più vicini
-    vector<size_t> vicini_indici;
-    for (size_t i = 0; i < min(k, distanze_con_indice.size()); ++i) {
-        vicini_indici.push_back(distanze_con_indice[i].second);
-    }
-
-    // Ordino i k punti in modo tale che ogni punto sia il più vicino possibile al precedente
-    vector<Vector3d> ordinati;
-    set<size_t> usati;
-
-    if (vicini_indici.empty()) return ordinati;
-
-    size_t attuale = vicini_indici[0];
-    ordinati.push_back(punti[attuale]);
-    usati.insert(attuale);
-
-    for (size_t step = 1; step < vicini_indici.size(); ++step) {
-        double min_d = numeric_limits<double>::max();
-        size_t prossimo = size_t(-1);
-
-        for (size_t idx : vicini_indici) {
-            if (usati.count(idx)) continue;
-            double d = (punti[attuale] - punti[idx]).norm();
-            if (d < min_d) {
-                min_d = d;
-                prossimo = idx;
-            }
-        }
-
-        if (prossimo != size_t(-1)) {
-            ordinati.push_back(punti[prossimo]);
-            usati.insert(prossimo);
-            attuale = prossimo;
-        }
-    }
-    return ordinati;
-}
-
-
-bool file_lati_II(const vector<Vector3d>& punti_unici, 
-                 map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
-                 map<array<int,3>, int>& mappa_vertici,
-                 int& id_lato,
-                 int& b,
-                 ostream& s_g_Cell1Ds, bool duale) 
-{
-    // Lati sul bordo della faccia
-    for (int i = 0; i < 6 * b - 1; i++) {
-        auto key_j = to_array(punti_unici[i]);
-        auto key_j1 = to_array(punti_unici[i + 1]);
-        if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()) {}
-		else
-        {
-            mappa_lati.insert({{min({key_j,key_j1}), max({key_j,key_j1})}, id_lato});
-            if (!duale){
-				s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
-			}
-            id_lato++;
-        }
-    }
-
-    // Chiudo il ciclo con il lato tra primo e ultimo punto sul bordo
-
-	auto key_j = to_array(punti_unici[0]);
-	auto key_j1 = to_array(punti_unici[6 * b - 1]);
-	if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()) {}
-	else
-	{
-		mappa_lati.insert({{min({key_j,key_j1}), max({key_j,key_j1})}, id_lato});
-		if (!duale){
-				s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
-			}
-		id_lato++;
-	}
-	for(size_t j = 0; j < punti_unici.size() - 6 * b; j++) {
-		vector<Vector3d> vicini = trova_k_punti_vicini(punti_unici[j + 6*b], punti_unici, 6);
-		auto key_j = to_array(punti_unici[6 * b + j]);
-		for(size_t k = 0; k < vicini.size(); k++){
-			auto key_j1 = to_array(vicini[k]);
-			if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()) {}
-			else
-			{
-				mappa_lati.insert({{min({key_j,key_j1}), max({key_j,key_j1})}, id_lato});
-				if (!duale){
-				s_g_Cell1Ds << id_lato << " " << mappa_vertici[key_j] << " " << mappa_vertici[key_j1] << "\n";
-			}
-				id_lato++;
-			}
+		else{
+			cerr << "Input non valido" << endl;
 		}
 		
-	}
-    return true;
-}
-
-using P = pair<double, int>;
-
-vector<int> dijkstra(int n, vector<vector<int>>& adiac_nodi, vector<vector<double>>& adiac_pesi, int start, int end) {
-    vector<double> dist(n, numeric_limits<double>::infinity());
-    vector<int> pred(n, -1);
-    priority_queue<P, vector<P>, greater<>> pq;
-
-    dist[start] = 0.0;
-    pq.emplace(0.0, start);
-
-    while (!pq.empty()) {
-        auto [d, u] = pq.top();
-        pq.pop();
-
-        if (d > dist[u]) continue;
-
-        for (size_t i = 0; i < adiac_nodi[u].size(); ++i) {
-            int v = adiac_nodi[u][i];
-            double w = adiac_pesi[u][i];
-
-            if (dist[u] + w < dist[v]) {
-                dist[v] = dist[u] + w;
-                pred[v] = u;
-                pq.emplace(dist[v], v);
-            }
-        }
-    }
-
-    // Ricostruzione cammino
-    vector<int> path;
-    if (dist[end] == numeric_limits<double>::infinity()) {
-        return path; // Nessun cammino
-    }
-
-    for (int v = end; v != -1; v = pred[v]) {
-        path.push_back(v);
-    }
-
-    reverse(path.begin(), path.end());
-    return path;
-}
-
-bool file_facce_II(const vector<Vector3d>& punti_unici,
-				map<array<array<int, 3>, 3>, int>& mappa_facce_2,
-				map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
-			    map<array<int,3> , int>& mappa_vertici,
-				int& id_faccia,
-				int& b,
-				ostream& s_g_Cell2Ds,
-				map<int, pair<Vector3i, Vector3i>>& mappa_facce) {	
-	Vector3i id_vertici_faccia;
-	Vector3i id_lati_faccia;					
-	for(size_t i = 0; i < punti_unici.size() - 6*b; i++) {
-		vector<Vector3d> vicini = trova_k_punti_vicini(punti_unici[i + 6*b], punti_unici, 6);
-		auto key_j = to_array(punti_unici[6*b + i].normalized());
-		for(size_t j = 0; j < vicini.size() - 1; j++) {
-			auto key_j1 = to_array(vicini[j].normalized());
-			auto key_j2 = to_array(vicini[j + 1].normalized());
-			if(mappa_facce_2.find({key_j, key_j1,key_j2}) == mappa_facce_2.end() && mappa_facce_2.find({key_j, key_j2,key_j1}) == mappa_facce_2.end() &&
-				mappa_facce_2.find({key_j1, key_j,key_j2}) == mappa_facce_2.end() && mappa_facce_2.find({key_j1, key_j2,key_j}) == mappa_facce_2.end() &&
-				mappa_facce_2.find({key_j2, key_j1,key_j}) == mappa_facce_2.end() && mappa_facce_2.find({key_j2, key_j,key_j1}) == mappa_facce_2.end())	{
-				mappa_facce_2.insert({{key_j,key_j1,key_j2},id_faccia});
-				id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_j2]};
-				id_lati_faccia= Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}], mappa_lati[{min({key_j,key_j2}),max({key_j,key_j2})}]};
-				s_g_Cell2Ds << id_faccia << " 3 " << "3 " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1] << " "<<
-				mappa_vertici[key_j2]<<" "<< mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}]<<" "<<mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}]<<" "<<mappa_lati[{min({key_j2,key_j}),max({key_j2,key_j})}]<<"\n";
-			    mappa_facce.insert({id_faccia,{id_vertici_faccia, id_lati_faccia}});
-				id_faccia++;
+		if(duale){
+			swap(V_s_g, F_s_g);
+		}			
+	    vector<double> ShortPath_v(V_s_g, 0.0);
+		vector<double> ShortPath_l(L_s_g, 0.0);
+		if (argc == 7){
+			int start = stoi(argv[5]);
+			int end = stoi(argv[6]);
+			// Controllo validità input
+			if (start < 0 || start >= V_s_g){
+				cerr << "ERRORE: id del vertice di partenza fuori dal range: [" << 0 << ", " << V_s_g -1 << "]" << endl;
+				return 1;
 			}
-		}
-		auto key_j1 = to_array(vicini[0].normalized());
-		auto key_j2 = to_array(vicini[5].normalized());
-		if(mappa_facce_2.find({key_j, key_j1,key_j2}) == mappa_facce_2.end() && mappa_facce_2.find({key_j, key_j2,key_j1}) == mappa_facce_2.end() &&
-			mappa_facce_2.find({key_j1, key_j,key_j2}) == mappa_facce_2.end() && mappa_facce_2.find({key_j1, key_j2,key_j}) == mappa_facce_2.end() &&
-			mappa_facce_2.find({key_j2, key_j1,key_j}) == mappa_facce_2.end() && mappa_facce_2.find({key_j2, key_j,key_j1}) == mappa_facce_2.end())	{
-			mappa_facce_2.insert({{key_j,key_j1,key_j2},id_faccia});
-			id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_j2]};
-			id_lati_faccia= Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}], mappa_lati[{min({key_j,key_j2}),max({key_j,key_j2})}]};
-			s_g_Cell2Ds << id_faccia << " 3 " << "3 " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1] << " "<<
-			mappa_vertici[key_j2]<<" "<< mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}]<<" "<<mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}]<<" "<<mappa_lati[{min({key_j2,key_j}),max({key_j2,key_j})}]<<"\n";
-			mappa_facce.insert({id_faccia,{id_vertici_faccia, id_lati_faccia}});
-			id_faccia++;
-		}
-	}
-	return true;
-}
+			if (end < 0 || end >= V_s_g){
+				cerr << "ERRORE: id del vertice di arrivo fuori dal range: [" << 0 << ", " << V_s_g -1 << "]" << endl;
+				return 1;
+			}
+			vector<vector<int>> lista_ad(V_s_g);
+			vector<vector<double>> pesi(V_s_g);
 
+			// Costruzione lista di adiacenza
+			for (int i = 0; i < L_s_g; ++i) {  // Entrambi i versi perchè non orientato
+				int from = Cell1DsExtrema(0, i);
+				int to   = Cell1DsExtrema(1, i);
+				Vector3d p_from = Cell0DsCoordinates.col(from);
+				Vector3d p_to = Cell0DsCoordinates.col(to);
+				
+				double peso = (p_from - p_to).norm();
+				
+				lista_ad[from].push_back(to);
+				lista_ad[to].push_back(from);
+				pesi[from].push_back(peso);
+				pesi[to].push_back(peso);
+			}
+			
+			vector<int> cammino_min = dijkstra(V_s_g, lista_ad, pesi, start, end) ;
+			cout << "Il cammino minimo è: ";
+			for (size_t k = 0; k < cammino_min.size(); k++){
+				cout << cammino_min[k] << " ";
+				ShortPath_v[cammino_min[k]] = 1.0;
+			}
+			cout << endl;
 
-vector<Vector3d> file_vertici_duale(int F_s_g, map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<array<int,3> , int>& mappa_vertici, map<array<int,3> , int>& mappa_vertici_duale, ofstream& s_g_Cell0Ds ) {
-	vector<Vector3d> baricentri(F_s_g);
-	for(int i = 0; i < F_s_g; i++) {
-		double eps = 1e-3;
-		Vector3d A;
-		Vector3d B;
-		Vector3d C;
-		Vector3i id_vertici_faccia = mappa_facce[i].first;
-		for (const auto& [key, valore] : mappa_vertici) {
-			if(valore == id_vertici_faccia[0]) {
-				A << key[0]*eps, key[1]*eps, key[2]*eps;
+			for (size_t i = 0; i < cammino_min.size() -1 ; ++i) {
+				int u = cammino_min[i];
+				int v = cammino_min[i + 1];
+
+				for (int j = 0; j < Cell1DsExtrema.cols(); ++j) {
+					int from = Cell1DsExtrema(0, j);
+					int to   = Cell1DsExtrema(1, j);
+
+					if ((from == u && to == v) || (from == v && to == u)) {
+						ShortPath_l[j] = 1.0;
+						break;
+					}
+				}
 			}
-			else if(valore == id_vertici_faccia[1]) {
-				B << key[0]*eps, key[1]*eps, key[2]*eps;
-			}
-			else if(valore == id_vertici_faccia[2]) {
-				C << key[0]*eps, key[1]*eps, key[2]*eps;
-			}
+					
 		}
 		
-		Vector3d baricentro = punti_triangolazione_II(A, B, C, 1).back();
-		baricentri[i] = baricentro.normalized();
-	}
-	for(size_t j = 0; j < baricentri.size(); j++) {
-		s_g_Cell0Ds << j << " " << baricentri[j][0] << " " << baricentri[j][1] << " " << baricentri[j][2] << "\n";
-		mappa_vertici_duale[to_array(baricentri[j])] = j;
-	}
-	return baricentri;
-}
+		Gedim::UCDUtilities utilities;
+		{
+			
+			vector<Gedim::UCDProperty<double>> cell0Ds_properties(1);
 
+			cell0Ds_properties[0].Label = "Marker";
+			cell0Ds_properties[0].UnitLabel = "-";
+			cell0Ds_properties[0].NumComponents = 1;
+			
+			cell0Ds_properties[0].Data = ShortPath_v.data();
 
+				
+			utilities.ExportPoints("./Cell0Ds.inp",
+								   Cell0DsCoordinates,
+								   cell0Ds_properties);
 
-map<pair<array<int,3>, array<int,3>>, int> file_lati_duale(vector<Vector3d>& baricentri, map<array<int,3>, int>& mappa_vertici_duale, int& id_lato, ofstream& s_g_Cell1Ds ) {
-	map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale;
-	for(size_t i = 0; i < baricentri.size(); i++) {
-		auto key_j = to_array(baricentri[i]);
-		vector<Vector3d> vicini = trova_k_punti_vicini(baricentri[i], baricentri,3);
-		for(size_t j = 0; j < vicini.size(); j++) {
-			auto key_j1 = to_array(vicini[j]);
-			if (mappa_lati_duale.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati_duale.end()) {}
-			else
-			{
-				mappa_lati_duale.insert({{min({key_j,key_j1}), max({key_j,key_j1})}, id_lato});
-				s_g_Cell1Ds << id_lato << " " << mappa_vertici_duale[key_j] << " " << mappa_vertici_duale[key_j1] << "\n";
-				id_lato++;
-			}
 		}
-	}	
-	return mappa_lati_duale;
-}
 
+		{
+
+			vector<Gedim::UCDProperty<double>> cell1Ds_properties(1);
+			
+			cell1Ds_properties[0].Label = "Marker";
+			cell1Ds_properties[0].UnitLabel = "-";
+			cell1Ds_properties[0].NumComponents = 1;
+
+			cell1Ds_properties[0].Data = ShortPath_l.data();
+				
+			utilities.ExportSegments("./Cell1Ds.inp",
+									 Cell0DsCoordinates,
+									 Cell1DsExtrema,
+									 {},
+									 cell1Ds_properties);
+		}
+	}
+	else {
+		cerr << "Input non valido" << endl;
+	}
+}
