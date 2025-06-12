@@ -29,7 +29,7 @@ vector<Vector3d> punti_triangolazione(const Vector3d& A, const Vector3d& B, cons
 			double c_B = (double)k / b;
 			double c_C = (double)j / b;
 			Vector3d P = c_A * A + c_B * B + c_C * C;
-			points.push_back(P);
+			points.push_back(P.normalized());
 		}
 	}
 	return(points);
@@ -41,7 +41,7 @@ bool file_vertici(const vector<Vector3d>& points,
 				  ostream& s_g_Cell0Ds, bool duale) {		  
 	for(size_t z = 0; z < points.size(); z++) {
 		double eps = 1e-3;
-		array<int,3> key = to_array(points[z].normalized());    
+		array<int,3> key = to_array(points[z]);    
 		if (mappa_vertici.find(key) == mappa_vertici.end()) {
 			mappa_vertici[key] = id_vertice;
 			if(!duale){
@@ -61,9 +61,9 @@ bool file_lati(const vector<Vector3d>& points,
 	int d = 0;
 	for (int f = 0; f <= b; f++) {   
 		for (int j = d; j < d + b - f; j++) {
-			auto key_j = to_array(points[j].normalized());
-			auto key_j1 = to_array(points[j+1].normalized());
-			auto key_jb = to_array(points[j+b+1-f].normalized());			
+			auto key_j = to_array(points[j]);
+			auto key_j1 = to_array(points[j+1]);
+			auto key_jb = to_array(points[j+b+1-f]);			
 			
 			if (mappa_lati.find({min({key_j,key_jb}), max({key_j,key_jb})}) != mappa_lati.end()){}
 			else{
@@ -105,9 +105,9 @@ bool file_facce(const vector<Vector3d>& points,
 	int d = 0;
 	for (int i = 0; i < b; i++) {   
 		for (int j = d; j < d + b - i; j++){
-			auto key_j = to_array(points[j].normalized());
-			auto key_j1 = to_array(points[j+1].normalized());
-			auto key_jb = to_array(points[j+b+1-i].normalized());
+			auto key_j = to_array(points[j]);
+			auto key_j1 = to_array(points[j+1]);
+			auto key_jb = to_array(points[j+b+1-i]);
 							
 			if(i == 0){
 				id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]}; 
@@ -118,7 +118,7 @@ bool file_facce(const vector<Vector3d>& points,
 				id_faccia++;
 			}
 			else {
-				auto key_jb_m = to_array(points[j-b-1+i].normalized());
+				auto key_jb_m = to_array(points[j-b-1+i]);
 				
 				id_vertici_faccia = Vector3i{ mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_jb]};  
 				id_lati_faccia = Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_jb}),max({key_j1,key_jb})}], mappa_lati[{min({key_j,key_jb}),max({key_j,key_jb})}]};
@@ -194,7 +194,7 @@ optional<Vector3d> calcola_intersezione(const Vector3d& A, const Vector3d& B, co
 
     // Controllo se l'intersezione cade dentro i due segmenti 
     if (t < 0.0 || t > 1.0 || s < 0.0 || s > 1.0) {
-        return std::nullopt; // Non c'è intersezione dei segmenti
+        return nullopt; // Non c'è intersezione dei segmenti
     }
 
     Vector3d punto_intersezione = A + t * dir1;
@@ -259,7 +259,7 @@ vector<Vector3d> punti_triangolazione_II(const Vector3d& A, const Vector3d& B, c
 		array<int,3> key = to_array(points[z]);    
 		if (mappa_vertici.find(key) == mappa_vertici.end()) {
 			mappa_vertici[key] = id_vertice;
-			punti_unici.push_back(points[z]);									
+			punti_unici.push_back(points[z].normalized());									
 			id_vertice++;
 		}
 	}
@@ -326,8 +326,8 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
 {
     // Lati sul bordo della faccia
     for (int i = 0; i < 6 * b - 1; i++) {
-        auto key_j = to_array(punti_unici[i].normalized());
-        auto key_j1 = to_array(punti_unici[i + 1].normalized());
+        auto key_j = to_array(punti_unici[i]);
+        auto key_j1 = to_array(punti_unici[i + 1]);
         if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()) {}
 		else
         {
@@ -341,8 +341,8 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
 
     // Chiudo il ciclo con il lato tra primo e ultimo punto sul bordo
 
-	auto key_j = to_array(punti_unici[0].normalized());
-	auto key_j1 = to_array(punti_unici[6 * b - 1].normalized());
+	auto key_j = to_array(punti_unici[0]);
+	auto key_j1 = to_array(punti_unici[6 * b - 1]);
 	if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()) {}
 	else
 	{
@@ -354,9 +354,9 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
 	}
 	for(size_t j = 0; j < punti_unici.size() - 6 * b; j++) {
 		vector<Vector3d> vicini = trova_k_punti_vicini(punti_unici[j + 6*b], punti_unici, 6);
-		auto key_j = to_array(punti_unici[6 * b + j].normalized());
+		auto key_j = to_array(punti_unici[6 * b + j]);
 		for(size_t k = 0; k < vicini.size(); k++){
-			auto key_j1 = to_array(vicini[k].normalized());
+			auto key_j1 = to_array(vicini[k]);
 			if (mappa_lati.find({min({key_j,key_j1}), max({key_j,key_j1})}) != mappa_lati.end()) {}
 			else
 			{

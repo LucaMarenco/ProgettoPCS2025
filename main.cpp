@@ -189,16 +189,16 @@ int main(int argc, char *argv[])
 		MatrixXd Cell0DsCoordinates;
 		MatrixXi Cell1DsExtrema;
 		if (p == 3) {
+			ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
+			ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
+			ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
+			ofstream s_g_Cell3Ds("s_g_Cell3Ds.txt");
+			s_g_Cell0Ds << "Id " << "x " << "y " << "z" << "\n";
+			s_g_Cell1Ds << "Id " << "start_vertex " << "end_vertex" << "\n"; 
+			s_g_Cell2Ds << "Id " << "num_vertices " << "num_edges " << "vertices " << "edges " << "\n";
+			s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
 			if (b >= 1 && c == 0 ){
 				int T = b * b + b * c + c * c; 
-				ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
-				ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
-				ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
-				ofstream s_g_Cell3Ds("s_g_Cell3Ds.txt");
-				s_g_Cell0Ds << "Id " << "x " << "y " << "z" << "\n";
-				s_g_Cell1Ds << "Id " << "start_vertex " << "end_vertex" << "\n"; 
-				s_g_Cell2Ds << "Id " << "num_vertices " << "num_edges " << "vertices " << "edges " << "\n";
-				s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
 				if (q == 3) {
 					int F = 4;
 					F_s_g = 4 * T;
@@ -385,16 +385,7 @@ int main(int argc, char *argv[])
 				}							
 			}
 		    // Triangolazione classe II
-			else if(b == c && b >= 1) {
-				//int T = b * b + b * c + c * c; 
-				ofstream s_g_Cell0Ds("s_g_Cell0Ds.txt");
-				ofstream s_g_Cell1Ds("s_g_Cell1Ds.txt");
-				ofstream s_g_Cell2Ds("s_g_Cell2Ds.txt");
-				ofstream s_g_Cell3Ds("s_g_Cell3Ds.txt");
-				s_g_Cell0Ds << "Id " << "x " << "y " << "z" << "\n";
-				s_g_Cell1Ds << "Id " << "start_vertex " << "end_vertex" << "\n"; 
-				s_g_Cell2Ds << "Id " << "num_vertices " << "num_edges " << "vertices " << "edges " << "\n";
-				s_g_Cell3Ds << "Id " << "num_vertices " << "num_edges " << "num_faces " << "vertices " << "edges " << "faces " << "\n";
+			else if(b == c && b >= 1) { 
 				if (q == 3) {
 					int F = 4;
 					F_s_g = 4 * (3 * b * b + 3 * b);
