@@ -421,7 +421,7 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 				int& id_faccia,
 				int& b,
 				ostream& s_g_Cell2Ds,
-				map<int, pair<Vector3i, Vector3i>>& mappa_facce) {	
+				map<int, pair<Vector3i, Vector3i>>& mappa_facce , bool duale) {	
 	Vector3i id_vertici_faccia;
 	Vector3i id_lati_faccia;					
 	for(size_t i = 0; i < punti_unici.size() - 6*b; i++) {
@@ -436,8 +436,10 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 				mappa_facce_2.insert({{key_j,key_j1,key_j2},id_faccia});
 				id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_j2]};
 				id_lati_faccia= Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}], mappa_lati[{min({key_j,key_j2}),max({key_j,key_j2})}]};
-				s_g_Cell2Ds << id_faccia << " 3 " << "3 " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1] << " "<<
-				mappa_vertici[key_j2]<<" "<< mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}]<<" "<<mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}]<<" "<<mappa_lati[{min({key_j2,key_j}),max({key_j2,key_j})}]<<"\n";
+				if (!duale){
+					s_g_Cell2Ds << id_faccia << " 3 " << "3 " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1] << " "<<
+					mappa_vertici[key_j2]<<" "<< mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}]<<" "<<mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}]<<" "<<mappa_lati[{min({key_j2,key_j}),max({key_j2,key_j})}]<<"\n";
+				}
 			    mappa_facce.insert({id_faccia,{id_vertici_faccia, id_lati_faccia}});
 				id_faccia++;
 			}
@@ -450,8 +452,10 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 			mappa_facce_2.insert({{key_j,key_j1,key_j2},id_faccia});
 			id_vertici_faccia = Vector3i{mappa_vertici[key_j], mappa_vertici[key_j1], mappa_vertici[key_j2]};
 			id_lati_faccia= Vector3i{mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}], mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}], mappa_lati[{min({key_j,key_j2}),max({key_j,key_j2})}]};
-			s_g_Cell2Ds << id_faccia << " 3 " << "3 " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1] << " "<<
-			mappa_vertici[key_j2]<<" "<< mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}]<<" "<<mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}]<<" "<<mappa_lati[{min({key_j2,key_j}),max({key_j2,key_j})}]<<"\n";
+			if (!duale){
+				s_g_Cell2Ds << id_faccia << " 3 " << "3 " << mappa_vertici[key_j] << " "<<  mappa_vertici[key_j1] << " "<<
+				mappa_vertici[key_j2]<<" "<< mappa_lati[{min({key_j,key_j1}),max({key_j,key_j1})}]<<" "<<mappa_lati[{min({key_j1,key_j2}),max({key_j1,key_j2})}]<<" "<<mappa_lati[{min({key_j2,key_j}),max({key_j2,key_j})}]<<"\n";
+			}
 			mappa_facce.insert({id_faccia,{id_vertici_faccia, id_lati_faccia}});
 			id_faccia++;
 		}
@@ -460,8 +464,9 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 }
 
 
-vector<Vector3d> file_vertici_duale(int F_s_g, map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<array<int,3> , int>& mappa_vertici, map<array<int,3> , int>& mappa_vertici_duale, ofstream& s_g_Cell0Ds ) {
+pair<vector<Vector3d>, map< int, Vector3d>> file_vertici_duale(int F_s_g, map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<array<int,3> , int>& mappa_vertici, map<array<int,3> , int>& mappa_vertici_duale, ofstream& s_g_Cell0Ds ) {
 	vector<Vector3d> baricentri(F_s_g);
+	map< int, Vector3d> mappa_baricentri;
 	for(int i = 0; i < F_s_g; i++) {
 		double eps = 1e-3;
 		Vector3d A;
@@ -483,11 +488,12 @@ vector<Vector3d> file_vertici_duale(int F_s_g, map<int, pair<Vector3i, Vector3i>
 		Vector3d baricentro = punti_triangolazione_II(A, B, C, 1).back();
 		baricentri[i] = baricentro.normalized();
 	}
-	for(size_t j = 0; j < baricentri.size(); j++) {
+	for(int j = 0; j < F_s_g; j++) {
 		s_g_Cell0Ds << j << " " << baricentri[j][0] << " " << baricentri[j][1] << " " << baricentri[j][2] << "\n";
 		mappa_vertici_duale[to_array(baricentri[j])] = j;
+		mappa_baricentri.insert({j, baricentri[j]});
 	}
-	return baricentri;
+	return {baricentri, mappa_baricentri};
 }
 
 
@@ -511,3 +517,50 @@ map<pair<array<int,3>, array<int,3>>, int> file_lati_duale(vector<Vector3d>& bar
 	return mappa_lati_duale;
 }
 
+map<int, pair<vector<int>, vector<int>>> file_facce_duale(map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<pair<array<int,3>, array<int,3>>, int>& mappa_lati_duale, map<array<int,3> , int>& mappa_vertici,  map<int, Vector3d>& mappa_baricentri, int& id_faccia_duale, ofstream& s_g_Cell2Ds ){
+	map<int, pair<vector<int>, vector<int>>> mappa_facce_duale;
+	for (const auto& [coord_v, id_v] : mappa_vertici) {
+		vector<int> facce_adiacenti;
+		facce_adiacenti.clear();
+		for (const auto& [id_f, pair_f] : mappa_facce) {
+			const Vector3i vertici_f = pair_f.first;
+			if ((vertici_f.array() == id_v).any()) {
+				facce_adiacenti.push_back(id_f);
+			}
+		}
+		
+		if (facce_adiacenti.size() < 3) {
+			cerr << "Errore"<< endl;
+		} 
+		vector<int> id_lati_faccia;
+		for (size_t i = 0; i < facce_adiacenti.size(); i++){
+			auto key_i = to_array(mappa_baricentri[facce_adiacenti[i]]);
+			for (size_t j = 0; j < facce_adiacenti.size(); ++j) {
+				if (j == i) continue; 
+				auto key_j = to_array( mappa_baricentri[facce_adiacenti[j]]);
+				if (mappa_lati_duale.find({min({key_i,key_j}),max({key_i,key_j})}) != mappa_lati_duale.end()){
+					int id = mappa_lati_duale[{min({key_i,key_j}),max({key_i,key_j})}];
+					if (find(id_lati_faccia.begin(), id_lati_faccia.end(), id) == id_lati_faccia.end()) {
+						id_lati_faccia.push_back(id);
+					}
+				}
+			}
+		}
+		mappa_facce_duale.insert({id_faccia_duale, {facce_adiacenti, id_lati_faccia}}); 
+		id_faccia_duale++;
+	}
+	for (const auto& [key, value] : mappa_facce_duale)
+	{
+		s_g_Cell2Ds << key << " " << value.first.size() << " " << value.second.size() << " " ;
+		for(size_t m = 0; m < value.first.size(); m ++){
+			s_g_Cell2Ds << value.first[m] << " ";
+		}
+		for(size_t m = 0; m < value.first.size(); m ++){
+			s_g_Cell2Ds << value.second[m] << " " ;
+		}
+		s_g_Cell2Ds << endl;
+	}
+	
+	
+	return mappa_facce_duale;
+}

@@ -201,6 +201,7 @@ int main(int argc, char *argv[])
 		int V_s_g = 0;
 		int L_s_g = 0;
 		int id_lato_dual = 0;
+		int id_faccia_duale = 0;
 		map<array<int,3> , int> mappa_vertici;    
 		map<pair<array<int,3>, array<int,3>>, int> mappa_lati;
 		map<int, pair<Vector3i, Vector3i>> mappa_facce;
@@ -254,16 +255,13 @@ int main(int argc, char *argv[])
 						};					
 					}
 					
-					for (const auto& [key, value] : mappa_facce)
-					{
-						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
-					}
+					
 					
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
-						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						// LATI?? non corretto
+						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
 						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
 						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
@@ -277,6 +275,10 @@ int main(int argc, char *argv[])
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
+						}
+						for (const auto& [key, value] : mappa_facce)
+						{
+							s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
 						}
 						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
@@ -320,16 +322,11 @@ int main(int argc, char *argv[])
 						};					
 					}
 					
-					for (const auto& [key, value] : mappa_facce)
-					{
-						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
-					}
-					
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
-						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						// LATI?? non corretto
+						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
 						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
 						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
@@ -343,6 +340,10 @@ int main(int argc, char *argv[])
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
+						}
+						for (const auto& [key, value] : mappa_facce)
+						{
+							s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
 						}
 						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
@@ -385,15 +386,11 @@ int main(int argc, char *argv[])
 						}				
 					}
 					
-					for (const auto& [key, value] : mappa_facce)
-					{
-						s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
-					}
-					
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
-						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
 						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
@@ -407,6 +404,10 @@ int main(int argc, char *argv[])
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
+						}
+						for (const auto& [key, value] : mappa_facce)
+						{
+							s_g_Cell2Ds << key << " " << "3 3 " << value.first.transpose()<< " " << value.second.transpose() << endl;
 						}
 						Cell0DsCoordinates = Cell0DsConverter(V_s_g, mappa_vertici);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici, mappa_lati);
@@ -444,7 +445,7 @@ int main(int argc, char *argv[])
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						}
-						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -452,8 +453,9 @@ int main(int argc, char *argv[])
 					}
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
-						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
 						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
 						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
@@ -500,7 +502,7 @@ int main(int argc, char *argv[])
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						}
-						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -508,8 +510,9 @@ int main(int argc, char *argv[])
 					}
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
-						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+					    auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
 						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
 						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))
@@ -556,7 +559,7 @@ int main(int argc, char *argv[])
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						}
-						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce))
+						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
@@ -564,8 +567,10 @@ int main(int argc, char *argv[])
 					}
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
-						vector<Vector3d> baricentri = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
+						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
 						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
+
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
 						if(!file_poliedro(V_s_g, F_s_g, L_s_g, s_g_Cell3Ds))

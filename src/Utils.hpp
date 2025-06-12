@@ -68,7 +68,8 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 				int& id_faccia,
 				int& b,
 				ostream& s_g_Cell2Ds,
-				map<int, pair<Vector3i, Vector3i>>& mappa_facce);
+				map<int, pair<Vector3i, Vector3i>>& mappa_facce , bool duale);
 				
-vector<Vector3d> file_vertici_duale(int F_s_g, map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<array<int,3> , int>& mappa_vertici, map<array<int,3> , int>& mappa_vertici_duale, ofstream& s_g_Cell0Ds );
+pair<vector<Vector3d>, map< int, Vector3d>> file_vertici_duale(int F_s_g, map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<array<int,3> , int>& mappa_vertici, map<array<int,3> , int>& mappa_vertici_duale, ofstream& s_g_Cell0Ds );
 map<pair<array<int,3>, array<int,3>>, int> file_lati_duale(vector<Vector3d>& baricentri, map<array<int,3>, int>& mappa_vertici_duale, int& id_lato, ofstream& s_g_Cell1Ds) ;
+map<int, pair<vector<int>, vector<int>>> file_facce_duale( map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<pair<array<int,3>, array<int,3>>, int>& mappa_lati_duale, map<array<int,3> , int>& mappa_vertici, map< int, Vector3d>& mappa_baricentri, int& id_faccia_duale,ofstream& s_g_Cell2Ds);
