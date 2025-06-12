@@ -88,7 +88,7 @@ TEST(FileVerticiTest, PuntiCorretti) {
 	int id_vertice = 0;
 	ostringstream s_g_Cell0Ds;
 	
-	bool result = file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds);
+	bool result = file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale);
 	
 	EXPECT_TRUE(result);
 	
@@ -112,7 +112,7 @@ TEST(FileLatiTest, LatiCorretti) {
 	ostringstream s_g_Cell1Ds;
 	int b = 2;
 	
-	bool result = file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds);
+	bool result = file_lati(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale);
 	
 	EXPECT_TRUE(result);
 	
@@ -139,7 +139,7 @@ TEST(FileLati_II_Test, LatiCorretti) {
 	ostringstream s_g_Cell1Ds;
 	int b = 1;
 	
-	bool result = file_lati_II(punti_unici, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds);
+	bool result = file_lati_II(punti_unici, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale);
 	
 	EXPECT_TRUE(result);
 	
