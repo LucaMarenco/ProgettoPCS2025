@@ -196,7 +196,6 @@ int main(int argc, char *argv[])
 		for (const auto& [id, coords] : iVertices) {
 			iCell0DsCoordinates[id] = coords;
 		}
-		
         int F_s_g = 0;
 		int V_s_g = 0;
 		int L_s_g = 0;
@@ -260,7 +259,7 @@ int main(int argc, char *argv[])
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
 						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(L_s_g, mappa_baricentri, mappa_facce, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds ); 
 						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
@@ -325,7 +324,7 @@ int main(int argc, char *argv[])
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
 						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(L_s_g, mappa_baricentri, mappa_facce, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
 						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
@@ -389,7 +388,7 @@ int main(int argc, char *argv[])
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
 						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(L_s_g, mappa_baricentri, mappa_facce, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds); 
 						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
@@ -425,7 +424,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<array<int, 3>, 3>, int> mappa_facce_2;
+					map<array<int, 3>, int> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = tCell2DsVertices[i][0];
 						int id_B = tCell2DsVertices[i][1]; 
@@ -434,6 +433,7 @@ int main(int argc, char *argv[])
 						Vector3d B = tCell0DsCoordinates[id_B];
 						Vector3d C = tCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
+
 						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
@@ -454,7 +454,7 @@ int main(int argc, char *argv[])
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
 						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(L_s_g, mappa_baricentri, mappa_facce, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
 						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<array<int, 3>, 3>, int> mappa_facce_2;
+					map<array<int, 3>, int> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = oCell2DsVertices[i][0];
 						int id_B = oCell2DsVertices[i][1]; 
@@ -491,17 +491,19 @@ int main(int argc, char *argv[])
 						Vector3d B = oCell0DsCoordinates[id_B];
 						Vector3d C = oCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
+
 						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						}
-
+						
 						if (!file_lati_II(points, mappa_lati, mappa_vertici, id_lato, b, s_g_Cell1Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
 							return 1;
 						}
+						
 						if (!file_facce_II(points, mappa_facce_2 ,mappa_lati, mappa_vertici, id_faccia, b, s_g_Cell2Ds, mappa_facce, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
@@ -511,7 +513,7 @@ int main(int argc, char *argv[])
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
 					    auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(L_s_g, mappa_baricentri, mappa_facce, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
 						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
 						Cell1DsExtrema = Cell1DsConverter(L_s_g, mappa_vertici_duale, mappa_lati_duale);
@@ -539,7 +541,7 @@ int main(int argc, char *argv[])
 					int id_vertice = 0;
 					int id_lato = 0;
 					int id_faccia = 0;
-					map<array<array<int, 3>, 3>, int> mappa_facce_2;
+					map<array<int, 3>, int> mappa_facce_2;
 					for(int i = 0; i < F; i++) {
 						int id_A = iCell2DsVertices[i][0];
 						int id_B = iCell2DsVertices[i][1]; 
@@ -548,6 +550,7 @@ int main(int argc, char *argv[])
 						Vector3d B = iCell0DsCoordinates[id_B];
 						Vector3d C = iCell0DsCoordinates[id_C];
 						vector<Vector3d> points = punti_triangolazione_II(A, B, C, b);
+
 						if(!file_vertici(points, mappa_vertici, id_vertice, s_g_Cell0Ds, duale))
 						{
 							cerr << "errore nella compilazione del file" << endl;
@@ -568,7 +571,7 @@ int main(int argc, char *argv[])
 					if(duale){
 						map<array<int,3> , int> mappa_vertici_duale ;
 						auto [baricentri, mappa_baricentri] = file_vertici_duale(F_s_g, mappa_facce, mappa_vertici, mappa_vertici_duale, s_g_Cell0Ds);
-						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(baricentri, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
+						map<pair<array<int,3>, array<int,3>>, int> mappa_lati_duale = file_lati_duale(L_s_g, mappa_baricentri, mappa_facce, mappa_vertici_duale, id_lato_dual, s_g_Cell1Ds);
 						map<int, pair<vector<int>, vector<int>>> mappa_facce_duale = file_facce_duale(mappa_facce, mappa_lati_duale, mappa_vertici, mappa_baricentri, id_faccia_duale, s_g_Cell2Ds);
 
 						Cell0DsCoordinates = Cell0DsConverter(mappa_vertici_duale.size(), mappa_vertici_duale);
