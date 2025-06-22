@@ -63,8 +63,6 @@ bool file_lati_II(const vector<Vector3d>& punti_unici,
                   int& b,
                   ostream& s_g_Cell1Ds, bool duale);
 
-vector<int> dijkstra(int n, vector<vector<int>>& adiac_nodi, vector<vector<double>>& adiac_pesi, int start, int end) ;
-
 bool file_facce_II(const vector<Vector3d>& punti_unici,
 				map<array< int, 3>, int>& mappa_facce_2,
 				map<pair<array<int,3>, array<int,3>>, int>& mappa_lati,
@@ -98,3 +96,5 @@ map<int, pair<vector<int>, vector<int>>> file_facce_duale(map<int, pair<Vector3i
 														  map< int, Vector3d>& mappa_baricentri, 
 														  int& id_faccia_duale,
 														  ostream& s_g_Cell2Ds);
+														  
+vector<int> dijkstra(int n, vector<vector<int>>& adiac_nodi, vector<vector<double>>& adiac_pesi, int start, int end);
