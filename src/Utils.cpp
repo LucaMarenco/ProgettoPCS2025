@@ -484,7 +484,11 @@ bool file_facce_II(const vector<Vector3d>& punti_unici,
 }
 
 
-pair<vector<Vector3d>, map< int, Vector3d>> file_vertici_duale(int F_s_g, map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<array<int,3> , int>& mappa_vertici, map<array<int,3> , int>& mappa_vertici_duale, ofstream& s_g_Cell0Ds ) {
+pair<vector<Vector3d>, map< int, Vector3d>> file_vertici_duale(int F_s_g, 
+															   map<int, pair<Vector3i, Vector3i>>& mappa_facce, 
+															   map<array<int,3> , int>& mappa_vertici, 
+															   map<array<int,3> , int>& mappa_vertici_duale, 
+															   ostream& s_g_Cell0Ds ) {
 	vector<Vector3d> baricentri(F_s_g);
 	map< int, Vector3d> mappa_baricentri;
 	for(int i = 0; i < F_s_g; i++) {
@@ -517,7 +521,9 @@ pair<vector<Vector3d>, map< int, Vector3d>> file_vertici_duale(int F_s_g, map<in
 }
 
 
-map<int, vector<int>> lati_facce( int L_s_g, map<int, pair<Vector3i, Vector3i>>& mappa_facce){
+map<int, vector<int>> lati_facce(int L_s_g, 
+								 map<int, pair<Vector3i, Vector3i>>& mappa_facce){
+									 
 	map<int, vector<int>> mappa_lati_facce;
 	for( int k = 0; k < L_s_g; k++){
 		vector<int> facce;
@@ -533,7 +539,11 @@ map<int, vector<int>> lati_facce( int L_s_g, map<int, pair<Vector3i, Vector3i>>&
 }
 	
 
-map<pair<array<int,3>, array<int,3>>, int> file_lati_duale(int L_s_g, map< int, Vector3d> mappa_baricentri, map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<array<int,3>, int>& mappa_vertici_duale, int& id_lato, ofstream& s_g_Cell1Ds ) {
+map<pair<array<int,3>, array<int,3>>, int> file_lati_duale(int L_s_g, map< int, Vector3d> mappa_baricentri, 
+														   map<int, pair<Vector3i, Vector3i>>& mappa_facce, 
+														   map<array<int,3>, int>& mappa_vertici_duale, 
+														   int& id_lato, 
+														   ostream& s_g_Cell1Ds ) {
 
 	map<pair<array<int, 3>, array<int, 3>>, int> mappa_lati_duale;
 	map<int, vector<int>> mappa_lati_facce = lati_facce(L_s_g, mappa_facce);
@@ -564,7 +574,13 @@ map<pair<array<int,3>, array<int,3>>, int> file_lati_duale(int L_s_g, map< int, 
 
 
 
-map<int, pair<vector<int>, vector<int>>> file_facce_duale(map<int, pair<Vector3i, Vector3i>>& mappa_facce, map<pair<array<int,3>, array<int,3>>, int>& mappa_lati_duale, map<array<int,3> , int>& mappa_vertici,  map<int, Vector3d>& mappa_baricentri, int& id_faccia_duale, ofstream& s_g_Cell2Ds ){
+map<int, pair<vector<int>, vector<int>>> file_facce_duale(map<int, pair<Vector3i, Vector3i>>& mappa_facce, 
+														  map<pair<array<int,3>, array<int,3>>, int>& mappa_lati_duale, 
+														  map<array<int,3> , int>& mappa_vertici,  
+														  map<int, Vector3d>& mappa_baricentri, 
+														  int& id_faccia_duale, 
+														  ostream& s_g_Cell2Ds ){	
+														  
 	map<int, pair<vector<int>, vector<int>>> mappa_facce_duale;
 	for (const auto& [coord_v, id_v] : mappa_vertici) {
 		vector<int> facce_adiacenti;

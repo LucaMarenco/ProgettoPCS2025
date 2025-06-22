@@ -49,6 +49,12 @@ list(APPEND SolidiPlatonici_SOURCES ${src_paraview_sources})
 list(APPEND SolidiPlatonici_HEADERS ${src_paraview_headers})
 list(APPEND SolidiPlatonici_INCLUDE ${src_paraview_includes})
 
+add_subdirectory(src_test)
+
+list(APPEND SolidiPlatonici_TEST_SOURCES ${src_test_sources})
+list(APPEND SolidiPlatonici_TEST_HEADERS ${src_test_headers})
+list(APPEND SolidiPlatonici_TEST_INCLUDE ${src_test_includes})
+
 # Create executable
 ################################################################################
 add_executable(${PROJECT_NAME}
@@ -56,10 +62,17 @@ add_executable(${PROJECT_NAME}
     ${SolidiPlatonici_SOURCES}
     ${SolidiPlatonici_HEADERS})
   
-
 target_link_libraries(${PROJECT_NAME} ${SolidiPlatonici_LINKED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${SolidiPlatonici_INCLUDE})
 target_compile_options(${PROJECT_NAME} PUBLIC -fPIC)
 
+add_executable(${PROJECT_NAME}_TEST
+    main_test.cpp
+    ${SolidiPlatonici_SOURCES}
+    ${SolidiPlatonici_HEADERS}
+    ${src_test_sources}
+    ${src_test_headers})
 
-
+target_link_libraries(${PROJECT_NAME}_TEST ${SolidiPlatonici_LINKED_LIBRARIES})
+target_include_directories(${PROJECT_NAME}_TEST PRIVATE ${SolidiPlatonici_INCLUDE})
+target_compile_options(${PROJECT_NAME}_TEST PUBLIC -fPIC)
