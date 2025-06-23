@@ -2,13 +2,13 @@ Progetto di Programmazione e Calcolo Scientifico
 Luca Marenco, Alessandro Contini, Massimo Cirronis
 2025
 
-## 1 Poliedri Geodetici e i loro duali
+# 1 Poliedri Geodetici e i loro duali
 Il progetto `e costituito da due parti. Dato in input una quadrupla di numeri
 interi (p, q, b, c):
 1. Definire i solidi geodetici di classe I e i loro duali.
 2. Definire i solidi geodetici di classe II e i loro duali.
 
-# 1.1 Parte I
+## 1.1 Parte I
 La prima parte del progetto consiste nel:
 
 1. Definire una struttura dati che permetta la memorizzazione di tutte le
@@ -69,7 +69,7 @@ delle loro lunghezze.
 Per ogni unit`a logica `e necessario verificarne il corretto funzionamento utilizzando
 i GoogleTest
 
-# 1.2 Parte II
+## 1.2 Parte II
 La seconda parte del progetto consiste nel modificare l’algoritmo prodotto nella
 parte I del progetto, in modo tale da consentire la costruzione dei solidi geodetici
 di classe II (b = c).
