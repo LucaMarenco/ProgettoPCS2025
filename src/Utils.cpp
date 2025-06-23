@@ -612,6 +612,7 @@ vector<int> dijkstra(int n, vector<vector<int>>& adiac_nodi, vector<vector<doubl
             }
         }
     }
+	cout << "La somma delle lunghezze dei lati del cammino minimo è: " << dist[end]*1e-3 << endl;
 
     // Ricostruzione cammino
     vector<int> path;
